@@ -2,3 +2,4 @@ build/
 install/
 log/
 .superpowers/
+docker/core-10.2.0/

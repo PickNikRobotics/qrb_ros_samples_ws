@@ -22,7 +22,17 @@ target_link_libraries(
          ${trajectory_msgs_TARGETS}
   PRIVATE moveit_pro_base::moveit_pro_base_planning_scene pro_rrt::pro_rrt)
 
+add_executable(qrb_ros_arm_pick_place src/qrb_ros_arm_pick_place.cpp)
+target_link_libraries(
+  qrb_ros_arm_pick_place
+  motion_planner
+  moveit_pro_planning_scene_monitor::planning_scene_monitor
+  rclcpp::rclcpp
+  rclcpp_action::rclcpp_action
+  ${control_msgs_TARGETS})
+
 install(TARGETS motion_planner LIBRARY DESTINATION lib)
+install(TARGETS qrb_ros_arm_pick_place DESTINATION lib/${PROJECT_NAME})
 install(DIRECTORY config launch DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
