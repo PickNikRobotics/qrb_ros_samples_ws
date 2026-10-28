@@ -1,0 +1,52 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100 # Hz
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    platform_velocity_controller:
+      type: diff_drive_controller/DiffDriveController
+
+# Replaces the gz-sim-diff-drive-system plugin in qrb_ros_sim_gazebo/urdf/xacro/gazebo_qrb_robot_base_diff_drive.xacro.
+# wheel_separation, wheel_radius, and the 1.1525 separation multiplier are Qualcomm's values
+# (qrb_robot_base.urdf, gazebo_qrb_robot_base.urdf.xacro). In MuJoCo that multiplier turns about 9% faster than
+# commanded; 1.05 matches (test/drive_check.py). Kept at Qualcomm's value per the migration's known-defect policy.
+platform_velocity_controller:
+  ros__parameters:
+    left_wheel_names: ["wheel_left_joint"]
+    right_wheel_names: ["wheel_right_joint"]
+    wheels_per_side: 1
+
+    wheel_separation: 0.33
+    wheel_separation_multiplier: 1.1525
+    wheel_radius: 0.0655
+    left_wheel_radius_multiplier: 1.0
+    right_wheel_radius_multiplier: 1.0
+
+    # Qualcomm's plugin published odometry at 50 Hz with no odom TF (enable_odom_tf defaults false). Here the
+    # controller owns odom -> base_footprint, the only publisher of that edge.
+    publish_rate: 50.0
+    odom_frame_id: odom
+    base_frame_id: base_footprint
+    enable_odom_tf: true
+    open_loop: false
+
+    # Gazebo's plugin kept driving on the last cmd_vel indefinitely; this stops 0.5 s after commands stop.
+    cmd_vel_timeout: 0.5
+
+    # Limits cover the sample's 0.5 m/s and 1.0 rad/s commands.
+    linear.x.has_velocity_limits: true
+    linear.x.max_velocity: 0.8
+    linear.x.has_acceleration_limits: true
+    linear.x.max_acceleration: 2.0
+    linear.x.max_deceleration: -4.0
+    linear.x.max_acceleration_reverse: -2.0
+    linear.x.max_deceleration_reverse: 4.0
+    angular.z.has_velocity_limits: true
+    angular.z.max_velocity: 2.0
+    angular.z.has_acceleration_limits: true
+    angular.z.max_acceleration: 4.0
+    angular.z.max_deceleration: -4.0
+    angular.z.max_acceleration_reverse: -4.0
+    angular.z.max_deceleration_reverse: 4.0

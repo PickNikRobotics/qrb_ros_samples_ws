@@ -1,0 +1,65 @@
+<mujoco model="qrb_robot_base">
+  <compiler angle="radian" meshdir="assets" />
+  <option integrator="implicitfast" />
+  <asset>
+    <mesh name="wheelTec_AMR" file="wheelTec_AMR.STL" scale="0.001 0.001 0.001" />
+  </asset>
+  <actuator>
+    <velocity name="wheel_left_joint" joint="wheel_left_joint" kv="50" ctrlrange="-30 30" />
+    <velocity name="wheel_right_joint" joint="wheel_right_joint" kv="50" ctrlrange="-30 30" />
+  </actuator>
+  <worldbody>
+    <body name="base_footprint">
+      <freejoint name="base_footprint" />
+      <body name="base_link" pos="0 0 0.1789">
+        <inertial pos="0 0 0" quat="0 0.707107 0 0.707107" mass="38" diaginertia="2.00893 1.47448 1.04888" />
+        <geom pos="0 0 -0.1425" quat="0 0 0 1" type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="1 1 1 1" mesh="wheelTec_AMR" name="wheelTec_AMR" />
+        <geom name="base_link" size="0.31 0.25 0.1425" type="box" rgba="1 1 1 1" />
+        <body name="laser" pos="0.262 0 -0.0029">
+          <inertial pos="0 0 0" quat="0.5 0.5 -0.5 0.5" mass="0.3" diaginertia="0.0002166 0.000150325 0.000150325" />
+          <geom size="0.038 0.0205" quat="0 0 0 1" type="cylinder" contype="0" conaffinity="0" group="1" density="0" rgba="0 0 0 0" name="laser" />
+          <geom size="0.038 0.0205" quat="0 0 0 1" type="cylinder" rgba="0 0 0 0" name="laser2" />
+        </body>
+        <body name="wheel_left" pos="0 0.165 -0.1134">
+          <inertial pos="0 0 0" quat="0.5 0.5 -0.5 0.5" mass="1" diaginertia="0.00214513 0.0012809 0.0012809" />
+          <joint name="wheel_left_joint" pos="0 0 0" axis="0 1 0" armature="0.05" damping="0.01" />
+          <geom name="wheel_left" size="0.0655 0.025" quat="0.707107 0.707107 0 0" type="cylinder" friction="1.2 0.01 0.001" condim="6" />
+          <geom name="wheel_left2" size="0.0655 0.025" quat="0.707107 0.707107 0 0" type="cylinder" contype="0" conaffinity="0" group="1" density="0" rgba="0 0 0 0" />
+        </body>
+        <body name="wheel_right" pos="0 -0.165 -0.1134">
+          <inertial pos="0 0 0" quat="0.5 0.5 -0.5 0.5" mass="1" diaginertia="0.00214513 0.0012809 0.0012809" />
+          <joint name="wheel_right_joint" pos="0 0 0" axis="0 1 0" armature="0.05" damping="0.01" />
+          <geom name="wheel_right" size="0.0655 0.025" quat="0.707107 0.707107 0 0" type="cylinder" friction="1.2 0.01 0.001" condim="6" />
+          <geom name="wheel_right2" size="0.0655 0.025" quat="0.707107 0.707107 0 0" type="cylinder" contype="0" conaffinity="0" group="1" density="0" rgba="0 0 0 0" />
+        </body>
+        <body name="caster_wheel_link1" pos="0.24 0.17 -0.1489">
+          <inertial pos="0 0 0" mass="0.3" diaginertia="0.000108 0.000108 0.000108" />
+          <joint name="caster_wheel_joint1" pos="0 0 0" type="ball" />
+          <geom size="0.03" quat="0.707107 0.707107 0 0" contype="0" conaffinity="0" group="1" density="0" rgba="0 0 0 0" name="caster_wheel_link1" />
+          <geom size="0.03" quat="0.707107 0.707107 0 0" rgba="0 0 0 0" name="caster_wheel_link12" friction="0 0 0" condim="1" />
+        </body>
+        <body name="caster_wheel_link2" pos="0.24 -0.17 -0.1489">
+          <inertial pos="0 0 0" mass="0.3" diaginertia="0.000108 0.000108 0.000108" />
+          <joint name="caster_wheel_joint2" pos="0 0 0" type="ball" />
+          <geom size="0.03" quat="0.707107 0.707107 0 0" contype="0" conaffinity="0" group="1" density="0" rgba="0 0 0 0" name="caster_wheel_link2" />
+          <geom size="0.03" quat="0.707107 0.707107 0 0" rgba="0 0 0 0" name="caster_wheel_link22" friction="0 0 0" condim="1" />
+        </body>
+        <body name="caster_wheel_link3" pos="-0.24 0.17 -0.1489">
+          <inertial pos="0 0 0" mass="0.3" diaginertia="0.000108 0.000108 0.000108" />
+          <joint name="caster_wheel_joint3" pos="0 0 0" type="ball" />
+          <geom size="0.03" quat="0.707107 0.707107 0 0" contype="0" conaffinity="0" group="1" density="0" rgba="0 0 0 0" name="caster_wheel_link3" />
+          <geom size="0.03" quat="0.707107 0.707107 0 0" rgba="0 0 0 0" name="caster_wheel_link32" friction="0 0 0" condim="1" />
+        </body>
+        <body name="caster_wheel_link4" pos="-0.24 -0.17 -0.1489">
+          <inertial pos="0 0 0" mass="0.3" diaginertia="0.000108 0.000108 0.000108" />
+          <joint name="caster_wheel_joint4" pos="0 0 0" type="ball" />
+          <geom size="0.03" quat="0.707107 0.707107 0 0" contype="0" conaffinity="0" group="1" density="0" rgba="0 0 0 0" name="caster_wheel_link4" />
+          <geom size="0.03" quat="0.707107 0.707107 0 0" rgba="0 0 0 0" name="caster_wheel_link42" friction="0 0 0" condim="1" />
+        </body>
+        <body name="base_imu_link">
+          <inertial pos="0 0 0" mass="0.01" diaginertia="1 1 1" />
+        </body>
+      </body>
+    </body>
+  </worldbody>
+</mujoco>

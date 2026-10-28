@@ -1,0 +1,36 @@
+<!-- Qualcomm's QRB robot base in the QRB warehouse, for the MoveIt Pro Simulator.
+     Recreates qrb_ros_sim_gazebo/worlds/warehouse.sdf with the base at Qualcomm's default spawn (0, 0, 0). -->
+<mujoco model="qrb_amr_warehouse">
+  <compiler angle="radian" autolimits="true" meshdir="assets" />
+  <option integrator="implicitfast" timestep="0.002" />
+
+  <default>
+    <default class="warehouse">
+      <geom rgba="0.55 0.55 0.5 1" />
+    </default>
+  </default>
+
+  <asset>
+    <texture name="grid" type="2d" builtin="checker" rgb1="0.25 0.25 0.25" rgb2="0.3 0.3 0.3" width="512" height="512" />
+    <material name="groundplane" texture="grid" texrepeat="40 40" reflectance="0.05" />
+  </asset>
+
+  <include file="qrb_robot_base.xml" />
+  <include file="warehouse.xml" />
+
+  <worldbody>
+    <light pos="0 0 6" dir="0 0 -1" directional="true" />
+    <geom name="floor" type="plane" size="0 0 0.05" material="groundplane" friction="1.0 0.005 0.0001" />
+
+    <!-- Scene camera behind and above the spawn, looking along +x. The optical-frame site is the camera
+         orientation rotated 180 degrees about its x-axis. -->
+    <camera name="scene_camera" pos="-2.5 0 2.2" fovy="70" mode="fixed" resolution="640 480"
+      xyaxes="0 -1 0 0.6 0 0.8" />
+    <site name="scene_camera_optical_frame" pos="-2.5 0 2.2" xyaxes="0 -1 0 -0.6 0 -0.8" />
+  </worldbody>
+
+  <keyframe>
+    <!-- base_footprint free joint: on the floor at the origin, identity orientation; casters at rest. -->
+    <key name="default" qpos="0 0 0 1 0 0 0  0 0  1 0 0 0  1 0 0 0  1 0 0 0  1 0 0 0" ctrl="0 0" />
+  </keyframe>
+</mujoco>

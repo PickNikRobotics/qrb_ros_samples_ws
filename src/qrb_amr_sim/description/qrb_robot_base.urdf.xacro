@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!-- Qualcomm's QRB robot base (qrb_ros_simulation, BSD-3-Clause) for the MoveIt Pro Simulator.
+     The Gazebo diff-drive and sensor blocks are replaced by MujocoSystem and diff_drive_controller. -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="qrb_robot_base">
+  <xacro:arg name="mujoco_model" default="description/scene.xml" />
+  <xacro:arg name="mujoco_viewer" default="false" />
+
+  <xacro:include filename="$(find qrb_amr_sim)/description/urdf/qrb_robot_base.urdf" />
+  <xacro:qrb_robot_base ns=""/>
+
+  <ros2_control name="qrb_robot_base_mujoco" type="system">
+    <hardware>
+      <plugin>picknik_mujoco_ros/MujocoSystem</plugin>
+      <param name="mujoco_model">$(arg mujoco_model)</param>
+      <param name="mujoco_model_package">qrb_amr_sim</param>
+      <param name="mujoco_viewer">$(arg mujoco_viewer)</param>
+      <param name="mujoco_keyframe">default</param>
+      <!-- diff_drive_controller owns odom -> base_footprint; robot_state_publisher owns the links below it.
+           MujocoSystem publishes mj_world -> odom so simulator sites (scene camera) attach to the same tree. -->
+      <param name="odom_frame">odom</param>
+      <param name="publish_mj_world_tf">true</param>
+      <param name="base_link_name">base_link</param>
+      <!-- The casters are URDF continuous joints about a diagonal axis but MuJoCo ball joints (they roll freely);
+           nothing commands them. -->
+      <param name="ignore_joint_validation">caster_wheel_joint1 caster_wheel_joint2 caster_wheel_joint3 caster_wheel_joint4</param>
+      <param name="tf_publish_rate">60</param>
+      <param name="render_publish_rate">10</param>
+    </hardware>
+    <joint name="wheel_left_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="wheel_right_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+</robot>
