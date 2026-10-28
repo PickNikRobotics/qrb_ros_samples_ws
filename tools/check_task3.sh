@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Task 3 gate, run inside the dev container: offline grasp gate, then the live drivers-only sim with no move_group.
-set -u
 source /etc/skel/.moveit-pro-bashrc
 cd ~/user_ws && colcon build --packages-select rml63_sim >/dev/null && source install/setup.bash
 ~/user_ws/tools/stop_sim.sh
