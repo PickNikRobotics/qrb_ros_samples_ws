@@ -1,0 +1,3 @@
+# The base's TF tree roots at odom (diff_drive_controller publishes odom -> base_footprint; MujocoSystem publishes
+# mj_world -> odom), not the 3D Visualizer's default world frame. Render relative to odom so the base is visible.
+referenceFrame: odom
