@@ -1,6 +1,8 @@
 """Post-process urdf_to_mjcf output for Qualcomm's QRB robot base into description/qrb_robot_base.xml.
 
-Usage: python3 -I postprocess_qrb_amr_mjcf.py <robot_description.xml> <out qrb_robot_base.xml>
+Usage: python3 -I postprocess_qrb_amr_mjcf.py <robot_description.xml> <out.xml> [model name, default qrb_robot_base]
+
+Used for both QRB bases (qrb_amr_sim: qrb_robot_base, qrb_amr_nav_sim: qrb_robot_base_mini); they share joint names.
 
 A mobile base is not a fixed arm, so the generated arm defaults are undone: base_footprint gets a free joint, gravity
 compensation is removed (the base must rest on its wheels), wheel position actuators become velocity actuators,
@@ -14,14 +16,14 @@ DRIVE_WHEELS = {"wheel_left_joint", "wheel_right_joint"}
 # Velocity actuators: tau = armature / kv must stay below the timestep (2 ms in scene.xml).
 WHEEL_KV = "50"
 WHEEL_ARMATURE = "0.05"
-# wheel_radius 0.0655 m, so +-30 rad/s covers about 2 m/s, 4x the sample's 0.5 m/s.
+# wheel_radius 0.0655 m (mini: 0.053 m), so +-30 rad/s covers 1.6 to 2 m/s, over 3x the samples' 0.5 m/s.
 WHEEL_CTRLRANGE = "-30 30"
 
 
-def main(src, dst):
+def main(src, dst, model="qrb_robot_base"):
     tree = ET.parse(src)
     root = tree.getroot()
-    root.set("model", "qrb_robot_base")
+    root.set("model", model)
     root.find("compiler").set("meshdir", "assets")
 
     for body in root.iter("body"):
@@ -61,4 +63,4 @@ def main(src, dst):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
+    main(*sys.argv[1:4])

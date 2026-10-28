@@ -1,0 +1,4 @@
+# diff_drive_controller is a kinematics controller, so the wheels are not joint-joggable. A real group and
+# controller are still required: empty lists crash the launch.
+planning_groups: ['base']
+controllers: ['platform_velocity_controller']

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<root BTCPP_format="4" main_tree_to_execute="Navigate to Clicked Pose">
+  <!-- Replaces the sample's last step, RViz's "2D Goal Pose": a goal in the map frame sent to Nav2's
+       /navigate_to_pose action, which runs bt_navigator's default tree (planning, following, and recovery). -->
+  <BehaviorTree
+    ID="Navigate to Clicked Pose"
+    _description="Click a goal on the floor in the Visualization view; Nav2 drives the QRB robot base mini there through the map Cartographer is building. The robot arrives facing the world X axis."
+    _favorite="true"
+  >
+    <Control ID="Sequence" name="NavigateToClickedPose">
+      <Action
+        ID="GetPoseFromUser"
+        is_normal="true"
+        pose_prompt="Click a goal on the floor. The robot will arrive facing the world X axis (red)."
+        user_pose="{goal}"
+        view_name="Visualization"
+      />
+      <Action
+        ID="NavigateToPoseAction"
+        action_name="/navigate_to_pose"
+        behavior_tree_path=""
+        ignore_stamp_time="true"
+        pose_stamped="{goal}"
+      />
+    </Control>
+  </BehaviorTree>
+  <TreeNodesModel>
+    <SubTree ID="Navigate to Clicked Pose">
+      <MetadataFields>
+        <Metadata subcategory="QRB Samples" />
+        <Metadata runnable="true" />
+      </MetadataFields>
+    </SubTree>
+  </TreeNodesModel>
+</root>

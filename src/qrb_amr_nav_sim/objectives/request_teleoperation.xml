@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<root BTCPP_format="4" main_tree_to_execute="Request Teleoperation">
+  <!-- Overrides core's Request Teleoperation for the armless QRB robot base mini, adapted from lunar_sim's copy.
+       None of core's arm branches apply. The Pose tab's mode (CARTESIAN_JOG, teleop_mode 2) runs TeleoperateBase
+       (vendored lunar_sim_behaviors), which forwards the jog pad, gamepad, and Quest VelocityForceCommand stream on
+       /pose_jog/base to a TwistStamped on /cmd_vel for platform_velocity_controller. Limits are Qualcomm's
+       simple_motion speeds. This replaces Qualcomm's keyboard node; core support is coming in a base-jog mode. -->
+  <BehaviorTree
+    ID="Request Teleoperation"
+    _description="Drives the QRB robot base mini over /cmd_vel from the Pose tab's jog pad, gamepad, or Quest headset input. The Joint, IMarker, and Waypoints tabs do nothing on this armless base."
+    _favorite="false"
+    _hardcoded="false"
+  >
+    <Control ID="Sequence">
+      <Action ID="Script" code="teleop_mode := 0" />
+      <Control ID="Parallel" success_count="1" failure_count="1">
+        <Action
+          ID="DoTeleoperateAction"
+          enable_user_interaction="{enable_user_interaction}"
+          user_interaction_prompt="{user_interaction_prompt}"
+          initial_teleop_mode="{initial_teleop_mode}"
+          current_teleop_mode="{teleop_mode}"
+          planning_groups="{planning_groups}"
+          controllers="{controllers}"
+          tip_links="{tip_links}"
+          skip_collision_checks="{skip_collision_checks}"
+          velocity_scale_factor="{velocity_scale_factor}"
+          require_user_approval="{require_user_approval}"
+        />
+        <Decorator ID="RepeatUnlessFailureEachTick" num_cycles="-1">
+          <Control ID="Sequence">
+            <!-- Pose tab: jog pad, gamepad, and Quest all publish /pose_jog/base. -->
+            <Decorator ID="ForceSuccess" _while="teleop_mode == 2">
+              <Action
+                ID="TeleoperateBase"
+                planning_group="base"
+                cmd_vel_topic="/cmd_vel"
+                frame_id="base_footprint"
+                max_linear_velocity="0.5"
+                max_angular_velocity="1.0"
+              />
+            </Decorator>
+          </Control>
+        </Decorator>
+      </Control>
+    </Control>
+  </BehaviorTree>
+  <TreeNodesModel>
+    <SubTree ID="Request Teleoperation">
+      <MetadataFields>
+        <Metadata subcategory="User Input" />
+        <Metadata runnable="false" />
+      </MetadataFields>
+      <input_port name="enable_user_interaction" default="false" type="bool">
+        Enable interactive user prompts during teleoperation mode selection
+      </input_port>
+      <input_port
+        name="user_interaction_prompt"
+        default="Press Abort to return FAILURE, Continue for SUCCESS"
+        type="std::string"
+      />
+      <input_port name="initial_teleop_mode" default="3" type="int" />
+      <input_port name="require_user_approval" default="true" type="bool">
+        Whether trajectory previews from Interactive Marker teleop must be
+        approved before execution. Set to false to skip the approval prompt.
+      </input_port>
+    </SubTree>
+  </TreeNodesModel>
+</root>
