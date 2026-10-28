@@ -13,7 +13,10 @@
   <xacro:rml_gripper ns=""/>
 
   <link name="world"/>
+  <!-- Qualcomm's Gazebo spawn pose (initial_x:=2.2 initial_y:=-2 initial_z:=1.025 initial_yaw:=3.14159).
+       Must match the arm_base_link pose in rml63.xml. -->
   <joint name="arm_virtual_joint" type="fixed">
+    <origin xyz="2.2 -2 1.025" rpy="0 0 3.14159265"/>
     <parent link="world"/>
     <child link="arm_base_link"/>
   </joint>

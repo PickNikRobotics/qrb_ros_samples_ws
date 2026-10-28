@@ -52,6 +52,7 @@
          Collision is a cylinder; the mesh is visual only. Mass from a full 330 ml can. -->
     <body name="coke1" pos="3 -2 1.025">
       <freejoint name="coke1" />
+      <site name="coke1_site" pos="0 0 0" size="0.005" />
       <geom type="mesh" mesh="coke" material="coke" contype="0" conaffinity="0" group="1" />
       <geom name="coke1_collision" type="cylinder" pos="0 0 0.0724" size="0.0299 0.0724" mass="0.35" friction="1.5 0.02 0.002" rgba="0.8 0 0 0" />
     </body>
