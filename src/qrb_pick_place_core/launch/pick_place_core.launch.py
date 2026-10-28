@@ -1,7 +1,8 @@
-"""Run Qualcomm's pick-and-place sample on MoveIt Pro Core.
+"""Run Qualcomm's pick-and-place sample, ported to MoveIt Pro.
 
-Only the application node is started. It expects ros2_control with rm_group_controller and hand_controller, and
-publishes nothing for MoveIt: there is no move_group. robot_description is read from this package's URDF and SRDF.
+Only the application node is started. It plans in-process with ProRRT and expects rm_group_controller (a
+JointTrajectoryAdmittanceController) and hand_controller (a GripperActionController) to be running; it does not use
+move_group. robot_description is read from this package's URDF and SRDF.
 """
 
 from pathlib import Path
