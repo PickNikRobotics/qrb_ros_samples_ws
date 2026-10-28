@@ -1,0 +1,53 @@
+# Docker Compose file that will be merged with /opt/moveit_pro/docker-compose.yaml.
+# For more details on how merging works, see https://docs.docker.com/compose/how-tos/multiple-compose-files/merge/#merging-rules.
+#
+# This file targets MoveIt Pro 10.0 and newer. See .moveit_pro_version.
+#
+# Only services that /opt/moveit_pro/docker-compose.yaml also defines may appear
+# here: a service named in this file and nowhere else has no image and no build
+# context, which makes the whole merged project invalid and aborts every
+# `moveit_pro run`/`build` before it does anything. That is what happened to the
+# pre-10.0 `agent_bridge` and `web_ui` overrides this file used to carry --
+# 10.0 renamed `agent_bridge` to `runtime` and dropped `web_ui` entirely (the UI
+# is now the separately distributed Desktop App), so both names became
+# unmatched. Check the installed service names before adding a service here:
+#
+#     grep -E '^  [a-z_]+:' /opt/moveit_pro/docker-compose.yaml
+#
+services:
+
+  # The base image that all MoveIt Pro services extend off of. Builds the user workspace.
+  base:
+    build:
+      args:
+        # The MoveIt Pro release the overlay is built FROM; matches the installed CLI.
+        MOVEIT_PRO_BASE_IMAGE: picknikciuser/moveit-pro:${MOVEIT_DOCKER_TAG:-main}-${MOVEIT_ROS_DISTRO:-jazzy}${MOVEIT_TARGET:-}
+
+  # Starts the robot drivers.
+  drivers:
+    volumes:
+      # Allow access to host hardware e.g. RealSense cameras. The installed
+      # compose file grants character-device cgroup rules for video4linux and
+      # USB devices but mounts no /dev, so this is still needed.
+      - /dev:/dev
+
+  # Developer specific configuration when running `moveit_pro dev`.
+  dev:
+    volumes:
+      # Allow access to host hardware e.g. RealSense cameras
+      - /dev:/dev
+
+# Overrides deliberately not carried forward from the pre-10.0 version of this
+# file, because 10.0 does all three natively -- re-adding any of them now would
+# either fail closed or silently override a working default:
+#
+#   * MOVEIT_FRONTEND_KEY.  `moveit_pro` now generates a canonical 64-hex-character
+#     key, stores it, and passes it through (`moveit_pro configure
+#     --rotate-frontend-key` rotates it). The old hardcoded `moveit-secret-key`
+#     default is now rejected as non-canonical.
+#   * The agent healthcheck.  The installed compose file already probes
+#     `curl -kfsS https://127.0.0.1:3200/health`, which is what the override
+#     changed it to.
+#   * The frontend TLS certificate mount.  TLS is handled by the runtime through
+#     MOVEIT_TLS_CERT_FILE / MOVEIT_TLS_KEY_FILE / MOVEIT_TLS_CERT_DIR, and the
+#     nginx frontend container that needed the mount no longer exists.

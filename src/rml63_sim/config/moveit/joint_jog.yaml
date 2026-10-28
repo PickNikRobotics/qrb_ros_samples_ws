@@ -1,0 +1,5 @@
+# Qualcomm's sample has no velocity/force controllers. MoveIt Pro 10.3 rejects empty jog lists at launch
+# (an empty list becomes an untyped ROS parameter), so name the arm group and its trajectory controller.
+# Jogging from the Desktop App is not supported for this robot.
+planning_groups: ['rm_group_controller']
+controllers: ['rm_group_controller']

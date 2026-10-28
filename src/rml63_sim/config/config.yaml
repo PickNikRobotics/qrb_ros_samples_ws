@@ -1,10 +1,11 @@
 # MoveIt Pro robot configuration package for Qualcomm's RML-63 pick-and-place sample.
 # Planning group, controller, and joint names are Qualcomm's, unchanged.
+# MoveIt Pro 10.x schema (see the 10.0 user workspace migration guide).
+runtime_launch_file:
+  package: "rml63_sim"
+  path: "launch/runtime.launch.xml"
+
 hardware:
-  simulated: true
-  robot_driver_persist_launch_file:
-    package: "moveit_studio_agent"
-    path: "launch/blank.launch.py"
   launch_control_node: True
   launch_robot_state_publisher: True
   robot_description:
@@ -28,6 +29,12 @@ moveit_params:
   joint_limits:
     package: "rml63_sim"
     path: "config/moveit/joint_limits.yaml"
+  pose_jog:
+    package: "rml63_sim"
+    path: "config/moveit/pose_jog.yaml"
+  joint_jog:
+    package: "rml63_sim"
+    path: "config/moveit/joint_jog.yaml"
   publish:
     planning_scene: True
     geometry_updates: True
@@ -47,9 +54,6 @@ ros2_control:
     - "joint_state_broadcaster"
     - "rm_group_controller"
     - "hand_controller"
-  controllers_inactive_at_startup: []
-  controllers_not_managed: []
-  controller_shared_topics: []
 
 objectives:
   behavior_loader_plugins:

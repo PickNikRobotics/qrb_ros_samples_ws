@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Qualcomm's velocity and acceleration scaling of 0.3 (setupMoveGroups in qrb_ros_arm_pick_place.cpp). -->
+<root BTCPP_format="4" main_tree_to_execute="QRB Move Arm">
+  <BehaviorTree
+    ID="QRB Move Arm"
+    _description="Move the RML-63 arm to a saved waypoint on rm_group_controller."
+  >
+    <SubTree
+      ID="Move to Named Waypoint (JTC)"
+      _collapsed="true"
+      waypoint_name="{waypoint_name}"
+      joint_group_name="rm_group_controller"
+      controller_names="rm_group_controller"
+      controller_action_server="/rm_group_controller/follow_joint_trajectory"
+      velocity_scale_factor="0.3"
+      acceleration_scale_factor="0.3"
+    />
+  </BehaviorTree>
+  <TreeNodesModel>
+    <SubTree ID="QRB Move Arm">
+      <MetadataFields>
+        <Metadata subcategory="QRB Samples" />
+        <Metadata runnable="false" />
+      </MetadataFields>
+      <input_port name="waypoint_name" default="ready" type="std::string" />
+    </SubTree>
+  </TreeNodesModel>
+</root>

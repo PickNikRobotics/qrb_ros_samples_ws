@@ -14,4 +14,12 @@ install(
     share/${PROJECT_NAME}
 )
 
+if(BUILD_TESTING)
+  find_package(ament_cmake_pytest REQUIRED)
+  ament_add_pytest_test(
+    objectives_integration_test test/objectives_integration_test.py
+    TIMEOUT 600
+    ENV MOVEIT_CONFIG_PACKAGE=rml63_sim MOVEIT_HOST_USER_WORKSPACE=${CMAKE_SOURCE_DIR})
+endif()
+
 ament_package()
