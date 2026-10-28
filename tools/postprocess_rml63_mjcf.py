@@ -54,6 +54,9 @@ def main(src, dst):
     ET.SubElement(link8, "site", name="tcp", pos="0 0 0.12", size="0.005", rgba="1 0 0 1")
 
     for joint in root.iter("joint"):
+        # Keep the driver's range where every follower stays inside its own limits (matches gripper.urdf).
+        if joint.get("name") == GRIPPER_DRIVER:
+            joint.set("range", "0 0.2")
         if joint.get("name") in GRIPPER_JOINTS:
             joint.set("damping", "0.5")
             joint.set("armature", "0.001")

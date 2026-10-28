@@ -71,7 +71,7 @@
                         <geom type="mesh" rgba="0.1 0.1 0.1 1" mesh="Link00" name="Link002" friction="1.5 0.02 0.002" />
                         <body name="Link01" pos="0.036 -0.04 -0.019" quat="0.988227 0 0 -0.152992" gravcomp="1">
                           <inertial pos="0.016415 9.75755e-09 0.00898194" quat="0.500415 0.499584 0.499584 0.500415" mass="0.00647716" diaginertia="1.6998e-06 1.45017e-06 2.95066e-07" />
-                          <joint name="joint01" pos="0 0 0" axis="0 0 1" range="0 1" actuatorfrcrange="-1 1" damping="0.5" frictionloss="0.1" armature="0.001" />
+                          <joint name="joint01" pos="0 0 0" axis="0 0 1" range="0 0.2" actuatorfrcrange="-1 1" damping="0.5" frictionloss="0.1" armature="0.001" />
                           <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.1 0.1 0.1 1" mesh="Link01" name="Link01" />
                           <geom type="mesh" rgba="0.1 0.1 0.1 1" mesh="Link01" name="Link012" friction="1.5 0.02 0.002" />
                           <body name="Link11" pos="0.042 0 0.003" quat="0.988227 0 0 0.152992" gravcomp="1">

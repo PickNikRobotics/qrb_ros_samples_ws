@@ -121,7 +121,7 @@
       <child link="${namespace}Link01" />
       <dynamics damping="0.1" friction="0.1" />
       <axis xyz="0 0 1" />
-      <limit lower="0" upper="1" effort="1" velocity="3.14" />
+      <limit lower="0" upper="0.2" effort="1" velocity="3.14" />
     </joint>
     <link name="${namespace}Link11">
       <inertial>
@@ -151,7 +151,7 @@
       <child link="${namespace}Link11" />
       <dynamics damping="0.1" friction="0.1" />
       <axis xyz="0 0 1" />
-      <limit lower="-1" upper="0" effort="1" velocity="3.14" />
+      <limit lower="-1" upper="0" effort="1" velocity="3.925" />
       <mimic joint="${namespace}joint01" multiplier="1.25" offset="-0.25" />
     </joint>
     <link name="${namespace}Link02">
@@ -213,7 +213,7 @@
       <child link="${namespace}Link22" />
       <dynamics damping="0.1" friction="0.1" />
       <axis xyz="0 0 1" />
-      <limit lower="0" upper="1" effort="1" velocity="3.14" />
+      <limit lower="0" upper="1" effort="1" velocity="3.925" />
       <mimic joint="${namespace}joint01" multiplier="-1.25" offset="0.25" />
     </joint>
   </xacro:macro>

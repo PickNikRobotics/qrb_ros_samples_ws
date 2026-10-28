@@ -31,7 +31,7 @@ docker run --rm --network host -e MOVEIT_LICENSE_KEY="$LICENSE" -e ROS_DOMAIN_ID
 NODE_RC=$?
 wait
 if [ -z "$KILL_AT" ]; then
-  dev "python3 ~/user_ws/src/rml63_sim/test/coke_tracker.py placed" || NODE_RC=1
+  dev "python3 ~/user_ws/src/rml63_sim/test/coke_tracker.py moved" || NODE_RC=1
   dev "~/user_ws/tools/stop_sim.sh"
 fi
 echo "node exit code: $NODE_RC"

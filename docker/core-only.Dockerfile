@@ -12,8 +12,11 @@ RUN ! dpkg-query -W -f="${Package}\n" | grep -xE "ros-jazzy-moveit-core|ros-jazz
 
 COPY src/qrb_pick_place_core /ws/src/qrb_pick_place_core
 WORKDIR /ws
+# The node talks to the JTAC through moveit_pro_controllers_msgs, which only the full Runtime ships, so the
+# Core-only image builds and tests the motion_planner library: the part of the port that uses only Core.
 RUN apt-get update \
     && rosdep install --from-paths src --ignore-src -y --rosdistro jazzy \
-       --skip-keys "moveit_pro_base moveit_pro_planning_scene_monitor pro_rrt" \
+       --skip-keys "moveit_pro_base moveit_pro_planning_scene_monitor pro_rrt moveit_pro_controllers_msgs" \
     && rm -rf /var/lib/apt/lists/*
-RUN . /opt/ros/jazzy/setup.sh && colcon build --packages-select qrb_pick_place_core
+RUN . /opt/ros/jazzy/setup.sh && colcon build --packages-select qrb_pick_place_core \
+      --cmake-args -DQRB_CORE_ONLY=ON -DBUILD_TESTING=ON

@@ -31,7 +31,8 @@ namespace
 using FollowJointTrajectory = moveit_pro_controllers_msgs::action::FollowJointTrajectoryWithAdmittance;
 using GripperCommand = control_msgs::action::GripperCommand;
 constexpr double kStateTimeoutS = 10.0;
-constexpr auto kResultTimeout = std::chrono::seconds(60);
+// Default for the result_timeout_s parameter.
+constexpr double kDefaultResultTimeoutS = 60.0;
 constexpr const char* kArmAction = "/rm_group_controller/follow_joint_trajectory";
 constexpr const char* kGripperAction = "/hand_controller/gripper_cmd";
 // The gripper's driving joint; the other fingers follow it as mimic joints.
@@ -52,7 +53,17 @@ moveit_pro::base::RobotModelPtr loadRobotModel(const rclcpp::Node::SharedPtr& no
   {
     throw std::runtime_error("Failed to parse the robot_description_semantic parameter as SRDF.");
   }
+#ifdef QRB_HAVE_ROBOT_MODEL_CREATE
+  // Validates the model, including that mimic joints cannot be driven past their own limits.
+  auto model = moveit_pro::base::RobotModel::create(urdf, srdf);
+  if (!model)
+  {
+    throw std::runtime_error("The robot description was rejected: " + model.error());
+  }
+  return *model;
+#else
   return std::make_shared<moveit_pro::base::RobotModel>(urdf, srdf);
+#endif
 }
 
 /** @brief Read joint_limits.yaml-style max_acceleration parameters (joint_limits.<joint>.max_acceleration). */
@@ -231,11 +242,14 @@ private:
       RCLCPP_ERROR(logger_, "%s failed: %s did not accept the goal", description.c_str(), kGripperAction);
       return false;
     }
-    auto result_future = gripper_client_->async_get_result(goal_future.get());
-    if (rclcpp::spin_until_future_complete(node_, result_future, kResultTimeout) !=
+    const auto handle = goal_future.get();
+    auto result_future = gripper_client_->async_get_result(handle);
+    if (rclcpp::spin_until_future_complete(node_, result_future, resultTimeout()) !=
       rclcpp::FutureReturnCode::SUCCESS)
     {
-      RCLCPP_ERROR(logger_, "%s failed: no result from %s within 60 s", description.c_str(), kGripperAction);
+      cancelGoal<GripperCommand>(gripper_client_, handle, kGripperAction);
+      RCLCPP_ERROR(logger_, "%s failed: no result from %s within %.1f s; goal cancelled", description.c_str(),
+          kGripperAction, resultTimeout().count());
       return false;
     }
     // A stalled close (the fingers stopped on the object) is a successful grasp.
@@ -322,17 +336,43 @@ private:
       return action + " rejected the trajectory";
     }
     auto result_future = client->async_get_result(handle);
-    if (rclcpp::spin_until_future_complete(node_, result_future, kResultTimeout) !=
+    if (rclcpp::spin_until_future_complete(node_, result_future, resultTimeout()) !=
       rclcpp::FutureReturnCode::SUCCESS)
     {
-      return "no result from " + action + " within 60 s";
+      cancelGoal<FollowJointTrajectory>(client, handle, action);
+      return "no result from " + action + " within " + std::to_string(resultTimeout().count()) +
+             " s; goal cancelled";
     }
     const auto wrapped = result_future.get();
+    if (!wrapped.result) {
+      return action + " returned no result (result code " + std::to_string(static_cast<int>(wrapped.code)) + ")";
+    }
     if (wrapped.code != rclcpp_action::ResultCode::SUCCEEDED || wrapped.result->error_code != 0) {
       return action + " failed with error code " +
              std::to_string(wrapped.result->error_code) + ": " + wrapped.result->error_message;
     }
     return "";
+  }
+
+  std::chrono::duration<double> resultTimeout() const
+  {
+    return std::chrono::duration<double>(
+      node_->get_parameter_or("result_timeout_s", kDefaultResultTimeoutS));
+  }
+
+  /**
+   * @brief Cancel an accepted goal the node has stopped waiting for, so the controller does not keep moving the robot.
+   */
+  template<typename ActionT>
+  void cancelGoal(const typename rclcpp_action::Client<ActionT>::SharedPtr & client,
+      const typename rclcpp_action::ClientGoalHandle<ActionT>::SharedPtr & handle, const std::string & action)
+  {
+    auto cancel_future = client->async_cancel_goal(handle);
+    if (rclcpp::spin_until_future_complete(node_, cancel_future, std::chrono::seconds(5)) !=
+      rclcpp::FutureReturnCode::SUCCESS)
+    {
+      RCLCPP_ERROR(logger_, "Could not cancel the goal on %s; the robot may still be moving.", action.c_str());
+    }
   }
 
   /**

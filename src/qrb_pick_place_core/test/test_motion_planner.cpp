@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cmath>
 #include <fstream>
 #include <map>
@@ -135,6 +136,34 @@ TEST_F(MotionPlannerTest, GripperStatesDriveMimicFingers)
   EXPECT_NEAR(close.getVariablePosition("joint11"), 0.0, 1e-6);
   EXPECT_NEAR(close.getVariablePosition("joint02"), -0.2, 1e-6);
   EXPECT_NEAR(close.getVariablePosition("joint22"), 0.0, 1e-6);
+}
+
+TEST_F(MotionPlannerTest, MimicJointsStayWithinTheirLimits)
+{
+  // Same contract as RobotModel::validateMimicJointLimits (which rejects the model at load from MoveIt Pro 10.2):
+  // the mimic mapping of the driving joint's full position, velocity, and acceleration range must stay inside each
+  // follower's own limits.
+  for (const auto* joint : model_->getJointModels())
+  {
+    const auto* driver = joint->getMimic();
+    if (driver == nullptr)
+    {
+      continue;
+    }
+    const auto& b = joint->getVariableBounds()[0];
+    const auto& d = driver->getVariableBounds()[0];
+    const double factor = joint->getMimicFactor();
+    const double offset = joint->getMimicOffset();
+    const double lo = std::min(factor * d.min_position, factor * d.max_position) + offset;
+    const double hi = std::max(factor * d.min_position, factor * d.max_position) + offset;
+    EXPECT_GE(lo, b.min_position - 1e-9) << joint->getName() << " position";
+    EXPECT_LE(hi, b.max_position + 1e-9) << joint->getName() << " position";
+    EXPECT_LE(std::abs(factor) * d.max_velocity, b.max_velocity + 1e-9) << joint->getName() << " velocity";
+    if (d.acceleration_bounded && b.acceleration_bounded)
+    {
+      EXPECT_LE(std::abs(factor) * d.max_acceleration, b.max_acceleration + 1e-9) << joint->getName() << " acceleration";
+    }
+  }
 }
 
 TEST_F(MotionPlannerTest, RespectsScaling)
