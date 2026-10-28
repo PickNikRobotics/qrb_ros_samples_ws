@@ -1,0 +1,44 @@
+<mujoco model="qrb_warehouse">
+  <worldbody>
+    <geom name="wall1" class="warehouse" type="box" pos="7.19009 -6.51308 4.50000" size="15.0835 0.0400 4.5000"/>
+    <geom name="wall2" class="warehouse" type="box" pos="7.19009 8.38732 4.50000" size="15.0835 0.0400 4.5000"/>
+    <geom name="wall3" class="warehouse" type="box" pos="-7.80991 1.09982 4.50000" size="0.0400 7.6800 4.5000"/>
+    <geom name="wall4" class="warehouse" type="box" pos="22.19009 1.09982 4.50000" size="0.0400 7.6800 4.5000"/>
+    <geom name="boxes1" class="warehouse" type="box" pos="7.41277 -3.62698 0.68506" size="0.6440 0.7110 0.6440"/>
+    <geom name="boxes2" class="warehouse" type="box" pos="10.36279 -3.62698 0.68506" size="0.6440 0.7110 0.6440"/>
+    <geom name="boxes3" class="warehouse" type="box" pos="13.14277 -3.62698 0.68506" size="0.6440 0.7110 0.6440"/>
+    <geom name="boxes4" class="warehouse" type="box" pos="15.74896 -3.62698 0.68506" size="0.6440 0.7110 0.6440"/>
+    <geom name="boxes5" class="warehouse" type="box" pos="18.51609 -3.62698 0.68506" size="0.6440 0.7110 0.6440"/>
+    <geom name="boxes6" class="warehouse" type="box" pos="7.41277 -1.27466 0.68506" size="0.6440 0.7110 0.6440"/>
+    <geom name="boxes7" class="warehouse" type="box" pos="10.36279 -1.27466 0.68506" size="0.6440 0.7110 0.6440"/>
+    <geom name="boxes8" class="warehouse" type="box" pos="13.14277 -1.27466 0.68506" size="0.6440 0.7110 0.6440"/>
+    <geom name="boxes9" class="warehouse" type="box" pos="15.74896 -1.27466 0.68506" size="0.6440 0.7110 0.6440"/>
+    <geom name="boxes10" class="warehouse" type="box" pos="18.51609 -1.27466 0.68506" size="0.6440 0.7110 0.6440"/>
+    <geom name="boxes11" class="warehouse" type="box" pos="5.96329 5.25552 0.68506" euler="0 0 -1.027999" size="0.6440 0.7110 0.6440"/>
+    <geom name="pilar1" class="warehouse" type="box" pos="-0.35011 4.71492 1.00000" size="0.2325 0.2325 1.0000"/>
+    <geom name="pilar2" class="warehouse" type="box" pos="14.64759 4.71492 1.00000" size="0.2325 0.2325 1.0000"/>
+    <geom name="pilar3" class="warehouse" type="box" pos="-0.35011 -2.78588 1.00000" size="0.2325 0.2325 1.0000"/>
+    <geom name="pilar4" class="warehouse" type="box" pos="14.64759 -2.78588 1.00000" size="0.2325 0.2325 1.0000"/>
+    <geom name="pallet_mover1" class="warehouse" type="box" pos="6.57569 -1.28918 0.41838" size="0.1815 0.2200 0.3595"/>
+    <geom name="pallet_mover2" class="warehouse" type="box" pos="5.58969 5.92232 0.41838" size="0.1815 0.1220 0.3595"/>
+    <geom name="stairs" class="warehouse" type="box" pos="20.20809 4.26502 0.25000" size="0.6495 0.3000 0.2500"/>
+    <geom name="shelfs1" class="warehouse" type="cylinder" pos="8.65629 1.08226 0.50000" size="0.0300 0.5000"/>
+    <geom name="shelfs2" class="warehouse" type="cylinder" pos="9.83839 1.08226 0.50000" size="0.0300 0.5000"/>
+    <geom name="shelfs3" class="warehouse" type="cylinder" pos="12.51479 1.08226 0.50000" size="0.0300 0.5000"/>
+    <geom name="shelfs4" class="warehouse" type="cylinder" pos="13.69639 1.08226 0.50000" size="0.0300 0.5000"/>
+    <geom name="shelfs5" class="warehouse" type="cylinder" pos="16.26589 1.08226 0.50000" size="0.0300 0.5000"/>
+    <geom name="shelfs6" class="warehouse" type="cylinder" pos="17.44809 1.08226 0.50000" size="0.0300 0.5000"/>
+    <geom name="shelfs7" class="warehouse" type="cylinder" pos="8.65629 3.66622 0.50000" size="0.0300 0.5000"/>
+    <geom name="shelfs8" class="warehouse" type="cylinder" pos="9.83839 3.66622 0.50000" size="0.0300 0.5000"/>
+    <geom name="shelfs9" class="warehouse" type="cylinder" pos="12.51479 3.66622 0.50000" size="0.0300 0.5000"/>
+    <geom name="shelfs10" class="warehouse" type="cylinder" pos="13.69639 3.66622 0.50000" size="0.0300 0.5000"/>
+    <geom name="shelfs11" class="warehouse" type="cylinder" pos="16.26589 3.66622 0.50000" size="0.0300 0.5000"/>
+    <geom name="shelfs12" class="warehouse" type="cylinder" pos="17.44809 3.66622 0.50000" size="0.0300 0.5000"/>
+    <geom name="shelfs13" class="warehouse" type="cylinder" pos="8.65629 6.24952 0.50000" size="0.0300 0.5000"/>
+    <geom name="shelfs14" class="warehouse" type="cylinder" pos="9.83839 6.24952 0.50000" size="0.0300 0.5000"/>
+    <geom name="shelfs15" class="warehouse" type="cylinder" pos="12.51479 6.24952 0.50000" size="0.0300 0.5000"/>
+    <geom name="shelfs16" class="warehouse" type="cylinder" pos="13.69639 6.24952 0.50000" size="0.0300 0.5000"/>
+    <geom name="shelfs17" class="warehouse" type="cylinder" pos="16.26589 6.24952 0.50000" size="0.0300 0.5000"/>
+    <geom name="shelfs18" class="warehouse" type="cylinder" pos="17.44809 6.24952 0.50000" size="0.0300 0.5000"/>
+  </worldbody>
+</mujoco>
