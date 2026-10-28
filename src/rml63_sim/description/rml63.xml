@@ -24,9 +24,6 @@
     <position joint="joint5" name="joint5" kp="2000" forcelimited="false" dampratio="1" ctrllimited="false" />
     <position joint="joint6" name="joint6" kp="2000" forcelimited="false" dampratio="1" ctrllimited="false" />
     <position joint="joint01" name="joint01" kp="50" forcelimited="true" dampratio="1" forcerange="-5 5" ctrllimited="false" />
-    <position joint="joint11" name="joint11" kp="50" forcelimited="true" dampratio="1" forcerange="-5 5" ctrllimited="false" />
-    <position joint="joint02" name="joint02" kp="50" forcelimited="true" dampratio="1" forcerange="-5 5" ctrllimited="false" />
-    <position joint="joint22" name="joint22" kp="50" forcelimited="true" dampratio="1" forcerange="-5 5" ctrllimited="false" />
   </actuator>
   <worldbody>
     <body name="arm_base_link" gravcomp="1" pos="2.2 -2 1.025" quat="0 0 0 1">
@@ -108,4 +105,9 @@
       </body>
     </body>
   </worldbody>
+  <equality>
+    <joint joint1="joint11" joint2="joint01" polycoef="-0.25 1.25 0 0 0" solref="0.005 1" />
+    <joint joint1="joint02" joint2="joint01" polycoef="0.0 -1.0 0 0 0" solref="0.005 1" />
+    <joint joint1="joint22" joint2="joint01" polycoef="0.25 -1.25 0 0 0" solref="0.005 1" />
+  </equality>
 </mujoco>

@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!-- Qualcomm's velocity and acceleration scaling of 0.3 (setupMoveGroups in qrb_ros_arm_pick_place.cpp). -->
+<!-- Qualcomm's velocity and acceleration scaling of 0.3 (setupMoveGroups in qrb_ros_arm_pick_place.cpp).
+     rm_group_controller is a JointTrajectoryAdmittanceController, so this uses the jtac execution pipeline. -->
 <root BTCPP_format="4" main_tree_to_execute="QRB Move Arm">
   <BehaviorTree
     ID="QRB Move Arm"
     _description="Move the RML-63 arm to a saved waypoint on rm_group_controller."
   >
     <SubTree
-      ID="Move to Named Waypoint (JTC)"
+      ID="Move to Named Waypoint"
       _collapsed="true"
       waypoint_name="{waypoint_name}"
       joint_group_name="rm_group_controller"
       controller_names="rm_group_controller"
       controller_action_server="/rm_group_controller/follow_joint_trajectory"
+      execution_pipeline="jtac"
       velocity_scale_factor="0.3"
       acceleration_scale_factor="0.3"
     />

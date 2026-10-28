@@ -5,6 +5,9 @@ Usage:
   python3 coke_tracker.py placed   # pass if coke1 rests upright on the cardboard box top (1.32 m) within 0.05 m xy
                                    # of the box-top drop point measured by grasp_gate.py --full
   python3 coke_tracker.py home     # pass if coke1 is at its spawn pose on the table
+  python3 coke_tracker.py moved    # pass if coke1 left the table: picked and carried to the box area (the original
+                                   # re_raise sweeps the open gripper through the released can, knocking it off
+                                   # about 1 run in 4, so its final pose is not a migration signal)
 """
 
 import sys
@@ -45,6 +48,7 @@ def main(mode):
         "lifted": pos[2] > TABLE_TOP_Z + 0.05,
         "placed": abs(pos[2] - BOX_TOP_Z) < 0.01 and up > 0.95 and np.linalg.norm(pos[:2] - PLACE_XY) < 0.05,
         "home": abs(pos[2] - TABLE_TOP_Z) < 0.01 and np.linalg.norm(pos[:2] - SPAWN_XY) < 0.01,
+        "moved": np.linalg.norm(pos[:2] - SPAWN_XY) > 0.3 or pos[2] > TABLE_TOP_Z + 0.1,
     }[mode]
     print("PASS" if ok else "FAIL")
     rclpy.shutdown()

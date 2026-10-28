@@ -44,9 +44,8 @@
     <xacro:pos_joint name="joint4"/>
     <xacro:pos_joint name="joint5"/>
     <xacro:pos_joint name="joint6"/>
+    <!-- joint01 drives the gripper; joint11, joint02 and joint22 are URDF mimic joints, coupled in MuJoCo by
+         equality constraints (rml63.xml). Only joint01 has a command interface. -->
     <xacro:pos_joint name="joint01"/>
-    <xacro:pos_joint name="joint11"/>
-    <xacro:pos_joint name="joint02"/>
-    <xacro:pos_joint name="joint22"/>
   </ros2_control>
 </robot>

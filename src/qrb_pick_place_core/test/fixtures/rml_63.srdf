@@ -36,17 +36,12 @@
         <joint name="joint5" value="0"/>
         <joint name="joint6" value="0"/>
     </group_state>
+    <!-- Gripper states set joint01 only; joint11, joint02 and joint22 are mimic joints (rml63.urdf.xacro). -->
     <group_state name="open" group="hand_controller">
         <joint name="joint01" value="0"/>
-        <joint name="joint11" value="-0.25"/>
-        <joint name="joint02" value="0"/>
-        <joint name="joint22" value="0.25"/>
     </group_state>
     <group_state name="close" group="hand_controller">
         <joint name="joint01" value="0.2"/>
-        <joint name="joint11" value="0"/>
-        <joint name="joint02" value="-0.2"/>
-        <joint name="joint22" value="0"/>
     </group_state>
     <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
     <end_effector name="hand" parent_link="link8" group="hand_controller"/>

@@ -152,6 +152,7 @@
       <dynamics damping="0.1" friction="0.1" />
       <axis xyz="0 0 1" />
       <limit lower="-1" upper="0" effort="1" velocity="3.14" />
+      <mimic joint="${namespace}joint01" multiplier="1.25" offset="-0.25" />
     </joint>
     <link name="${namespace}Link02">
       <inertial>
@@ -182,6 +183,7 @@
       <dynamics damping="0.1" friction="0.1" />
       <axis xyz="0 0 1" />
       <limit lower="-1" upper="0" effort="1" velocity="3.14" />
+      <mimic joint="${namespace}joint01" multiplier="-1.0" offset="0.0" />
     </joint>
     <link name="${namespace}Link22">
       <inertial>
@@ -212,6 +214,7 @@
       <dynamics damping="0.1" friction="0.1" />
       <axis xyz="0 0 1" />
       <limit lower="0" upper="1" effort="1" velocity="3.14" />
+      <mimic joint="${namespace}joint01" multiplier="-1.25" offset="0.25" />
     </joint>
   </xacro:macro>
 </robot>

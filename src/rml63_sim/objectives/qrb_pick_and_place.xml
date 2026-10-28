@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!-- Qualcomm's simulation_sample_pick_and_place as a Behavior Tree: the nine steps of qrb_ros_arm_pick_place.cpp,
-     each a move to a saved waypoint. Waypoints hold Qualcomm's joint targets and SRDF named states unchanged. -->
 <root BTCPP_format="4" main_tree_to_execute="QRB Pick and Place">
   <BehaviorTree
     ID="QRB Pick and Place"
     _description="Pick a can from the table and place it on the cardboard box, ported from Qualcomm's MoveIt 2 pick-and-place sample."
+    _favorite="false"
   >
     <Control ID="Sequence" name="PickAndPlace">
       <Control ID="Sequence" name="Prepare">
-        <SubTree ID="QRB Move Arm" _collapsed="true" waypoint_name="ready" />
-        <SubTree ID="QRB Move Gripper" _collapsed="true" waypoint_name="open" />
+        <SubTree ID="QRB Load Scene" _collapsed="true" />
+        <SubTree ID="QRB Move Arm" _collapsed="false" waypoint_name="ready" />
+        <SubTree ID="Open Gripper" _collapsed="true" />
       </Control>
       <Control ID="Sequence" name="Pick">
-        <SubTree ID="QRB Move Arm" _collapsed="true" waypoint_name="pick" />
-        <SubTree ID="QRB Move Gripper" _collapsed="true" waypoint_name="close" />
-        <SubTree ID="QRB Move Arm" _collapsed="true" waypoint_name="raise" />
+        <SubTree ID="QRB Move Arm" _collapsed="false" waypoint_name="pick" />
+        <SubTree ID="Close Gripper" _collapsed="true" />
+        <SubTree ID="QRB Move Arm" _collapsed="false" waypoint_name="raise" />
       </Control>
       <Control ID="Sequence" name="Place">
-        <SubTree ID="QRB Move Arm" _collapsed="true" waypoint_name="place" />
-        <SubTree ID="QRB Move Gripper" _collapsed="true" waypoint_name="open" />
+        <SubTree ID="QRB Move Arm" _collapsed="false" waypoint_name="place" />
+        <SubTree ID="Open Gripper" _collapsed="true" />
         <SubTree ID="QRB Move Arm" _collapsed="true" waypoint_name="re_raise" />
       </Control>
       <SubTree ID="QRB Move Arm" _collapsed="true" waypoint_name="ready" />
@@ -27,8 +27,8 @@
   <TreeNodesModel>
     <SubTree ID="QRB Pick and Place">
       <MetadataFields>
-        <Metadata subcategory="QRB Samples" />
         <Metadata runnable="true" />
+        <Metadata subcategory="QRB Samples" />
       </MetadataFields>
     </SubTree>
   </TreeNodesModel>

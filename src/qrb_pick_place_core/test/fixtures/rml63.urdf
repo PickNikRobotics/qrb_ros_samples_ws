@@ -329,6 +329,7 @@
     <dynamics damping="0.1" friction="0.1"/>
     <axis xyz="0 0 1"/>
     <limit effort="1" lower="-1" upper="0" velocity="3.14"/>
+    <mimic joint="joint01" multiplier="1.25" offset="-0.25"/>
   </joint>
   <link name="Link02">
     <inertial>
@@ -359,6 +360,7 @@
     <dynamics damping="0.1" friction="0.1"/>
     <axis xyz="0 0 1"/>
     <limit effort="1" lower="-1" upper="0" velocity="3.14"/>
+    <mimic joint="joint01" multiplier="-1.0" offset="0.0"/>
   </joint>
   <link name="Link22">
     <inertial>
@@ -389,6 +391,7 @@
     <dynamics damping="0.1" friction="0.1"/>
     <axis xyz="0 0 1"/>
     <limit effort="1" lower="0" upper="1" velocity="3.14"/>
+    <mimic joint="joint01" multiplier="-1.25" offset="0.25"/>
   </joint>
   <link name="world"/>
   <!-- Qualcomm's Gazebo spawn pose (initial_x:=2.2 initial_y:=-2 initial_z:=1.025 initial_yaw:=3.14159).
@@ -439,21 +442,6 @@
       <state_interface name="velocity"/>
     </joint>
     <joint name="joint01">
-      <command_interface name="position"/>
-      <state_interface name="position"/>
-      <state_interface name="velocity"/>
-    </joint>
-    <joint name="joint11">
-      <command_interface name="position"/>
-      <state_interface name="position"/>
-      <state_interface name="velocity"/>
-    </joint>
-    <joint name="joint02">
-      <command_interface name="position"/>
-      <state_interface name="position"/>
-      <state_interface name="velocity"/>
-    </joint>
-    <joint name="joint22">
       <command_interface name="position"/>
       <state_interface name="position"/>
       <state_interface name="velocity"/>

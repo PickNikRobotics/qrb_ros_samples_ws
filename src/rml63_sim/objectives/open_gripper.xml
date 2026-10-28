@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Overrides the core `Open Gripper` placeholder for rml63_sim. hand_controller is a GripperActionController on joint01;
+     the other fingers follow it as mimic joints. -->
+<root BTCPP_format="4" main_tree_to_execute="Open Gripper">
+  <BehaviorTree ID="Open Gripper" _description="Open the RML-63 gripper (joint01 = SRDF open)">
+    <Control ID="Sequence" name="root">
+      <Action
+        ID="MoveGripperAction"
+        gripper_command_action_name="/hand_controller/gripper_cmd"
+        position="0.0"
+        timeout="10.0"
+      />
+    </Control>
+  </BehaviorTree>
+  <TreeNodesModel>
+    <SubTree ID="Open Gripper">
+      <MetadataFields>
+        <Metadata subcategory="Grasping" />
+        <Metadata runnable="true" />
+      </MetadataFields>
+    </SubTree>
+  </TreeNodesModel>
+</root>

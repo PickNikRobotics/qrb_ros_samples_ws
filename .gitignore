@@ -3,3 +3,5 @@ install/
 log/
 .superpowers/
 docker/core-10.2.0/
+__pycache__/
+core.[0-9]*

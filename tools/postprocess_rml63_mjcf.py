@@ -14,6 +14,10 @@ BASE_POS = "2.2 -2 1.025"
 BASE_QUAT = "0 0 0 1"  # yaw = pi
 ARM_JOINTS = {"joint1", "joint2", "joint3", "joint4", "joint5", "joint6"}
 GRIPPER_JOINTS = {"joint01", "joint11", "joint02", "joint22"}
+# joint01 drives the gripper; the other fingers follow it linearly, fitted through the SRDF "open"
+# (0, -0.25, 0, 0.25) and "close" (0.2, 0, -0.2, 0) states. (follower, offset, multiplier): q = offset + multiplier * q01.
+GRIPPER_DRIVER = "joint01"
+GRIPPER_FOLLOWERS = [("joint11", -0.25, 1.25), ("joint02", 0.0, -1.0), ("joint22", 0.25, -1.25)]
 
 
 def main(src, dst):
@@ -24,7 +28,11 @@ def main(src, dst):
     compiler.set("meshdir", "assets")
     compiler.set("autolimits", "true")
 
-    for act in root.find("actuator"):
+    actuators = root.find("actuator")
+    for act in list(actuators):
+        if act.get("joint") in {name for name, _, _ in GRIPPER_FOLLOWERS}:
+            actuators.remove(act)
+    for act in actuators:
         joint = act.get("joint")
         if joint in ARM_JOINTS:
             act.set("kp", "2000")
@@ -53,6 +61,13 @@ def main(src, dst):
     for geom in root.iter("geom"):
         if geom.get("contype") != "0":
             geom.set("friction", "1.5 0.02 0.002")
+
+    equality = ET.SubElement(root, "equality")
+    for follower, offset, multiplier in GRIPPER_FOLLOWERS:
+        ET.SubElement(
+            equality, "joint", joint1=follower, joint2=GRIPPER_DRIVER, polycoef=f"{offset} {multiplier} 0 0 0",
+            solref="0.005 1",
+        )
 
     ET.indent(tree)
     tree.write(dst)

@@ -1,8 +1,9 @@
 // Copyright (c) 2025 Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 //
-// Ported from MoveIt 2 (MoveGroupInterface + move_group) to MoveIt Pro Core. Step sequence, joint targets, and log
-// text are unchanged from Qualcomm's qrb_ros_samples/robotics/simulation_sample_pick_and_place.
+// Ported from MoveIt 2 (MoveGroupInterface + move_group) to MoveIt Pro. Step sequence, joint targets, and log text are
+// unchanged from Qualcomm's qrb_ros_samples/robotics/simulation_sample_pick_and_place. The arm runs on MoveIt Pro's
+// JointTrajectoryAdmittanceController; the gripper runs on a GripperActionController driving joint01.
 
 #include <chrono>
 #include <cmath>  // For M_PI
@@ -13,7 +14,8 @@
 #include <utility>
 #include <vector>
 
-#include <control_msgs/action/follow_joint_trajectory.hpp>
+#include <control_msgs/action/gripper_command.hpp>
+#include <moveit_pro_controllers_msgs/action/follow_joint_trajectory_with_admittance.hpp>
 #include <moveit_pro/planning_scene_monitor/current_state_monitor.hpp>
 #include <moveit_pro_base/robot_model/robot_model.hpp>
 #include <rclcpp/rclcpp.hpp>
@@ -26,11 +28,14 @@
 
 namespace
 {
-using FollowJointTrajectory = control_msgs::action::FollowJointTrajectory;
+using FollowJointTrajectory = moveit_pro_controllers_msgs::action::FollowJointTrajectoryWithAdmittance;
+using GripperCommand = control_msgs::action::GripperCommand;
 constexpr double kStateTimeoutS = 10.0;
 constexpr auto kResultTimeout = std::chrono::seconds(60);
 constexpr const char* kArmAction = "/rm_group_controller/follow_joint_trajectory";
-constexpr const char* kGripperAction = "/hand_controller/follow_joint_trajectory";
+constexpr const char* kGripperAction = "/hand_controller/gripper_cmd";
+// The gripper's driving joint; the other fingers follow it as mimic joints.
+constexpr const char* kGripperJoint = "joint01";
 
 /** @brief Build the robot model from the robot_description / robot_description_semantic parameters. */
 moveit_pro::base::RobotModelPtr loadRobotModel(const rclcpp::Node::SharedPtr& node)
@@ -73,14 +78,6 @@ std::map<std::string, double> loadAccelerationLimits(const rclcpp::Node::SharedP
 class RobotController
 {
 public:
-  ~RobotController()
-  {
-    state_executor_.cancel();
-    if (state_thread_.joinable()) {
-      state_thread_.join();
-    }
-  }
-
   RobotController(std::shared_ptr<rclcpp::Node> node)
     : node_(node)
     , logger_(rclcpp::get_logger("qrb_ros_arm_pick_place"))
@@ -93,7 +90,7 @@ public:
           node->get_parameter("use_sim_time").as_bool()))
     , planner_(model_, loadAccelerationLimits(node, *model_), kVelocityScaling, kAccelerationScaling)
     , arm_client_(rclcpp_action::create_client<FollowJointTrajectory>(node, kArmAction))
-    , gripper_client_(rclcpp_action::create_client<FollowJointTrajectory>(node, kGripperAction))
+    , gripper_client_(rclcpp_action::create_client<GripperCommand>(node, kGripperAction))
   {
     setupMoveGroups();
   }
@@ -112,7 +109,7 @@ public:
       }
 
       // Step 2: Open gripper
-      if (!moveToNamedTarget(kGripperGroup, "open", "Open Gripper")) {
+      if (!moveGripper("open", "Open Gripper")) {
         return false;
       }
 
@@ -122,7 +119,7 @@ public:
       }
 
       // Step 4: Close gripper (grasp)
-      if (!moveToNamedTarget(kGripperGroup, "close", "Close Gripper")) {
+      if (!moveGripper("close", "Close Gripper")) {
         return false;
       }
 
@@ -137,7 +134,7 @@ public:
       }
 
       // Step 7: Open gripper (release)
-      if (!moveToNamedTarget(kGripperGroup, "open", "Release Object")) {
+      if (!moveGripper("open", "Release Object")) {
         return false;
       }
 
@@ -173,11 +170,19 @@ private:
   // spun in the background, so the main node stays free for spin_until_future_complete on action calls.
   rclcpp::Node::SharedPtr state_node_;
   rclcpp::executors::SingleThreadedExecutor state_executor_;
-  std::thread state_thread_;
+  // Joined on destruction, including when the constructor throws: a joinable std::thread member would abort.
+  std::jthread state_thread_;
+  struct ExecutorStopper
+  {
+    rclcpp::executors::SingleThreadedExecutor & executor;
+    ~ExecutorStopper() { executor.cancel(); }
+  };
+  // Declared after state_thread_, so it is destroyed first: cancel() returns spin() before the jthread joins.
+  ExecutorStopper state_executor_stopper_{ state_executor_ };
   std::shared_ptr<moveit_pro::planning_scene_monitor::CurrentStateMonitor> state_monitor_;
   qrb_pick_place_core::MotionPlanner planner_;
   rclcpp_action::Client<FollowJointTrajectory>::SharedPtr arm_client_;
-  rclcpp_action::Client<FollowJointTrajectory>::SharedPtr gripper_client_;
+  rclcpp_action::Client<GripperCommand>::SharedPtr gripper_client_;
 
   /**
    * @brief Start state monitoring and wait for the controllers
@@ -185,20 +190,63 @@ private:
   void setupMoveGroups()
   {
     state_executor_.add_node(state_node_);
-    state_thread_ = std::thread([this] { state_executor_.spin(); });
+    state_thread_ = std::jthread([this] { state_executor_.spin(); });
     state_monitor_->startStateMonitor("/joint_states");
     if (!state_monitor_->waitForCompleteState(kStateTimeoutS)) {
       throw std::runtime_error("No complete robot state on /joint_states within 10 s. Is the simulator running?");
     }
-    for (const auto & [client, name] : { std::pair{ arm_client_, kArmAction }, std::pair{ gripper_client_, kGripperAction } }) {
-      if (!client->wait_for_action_server(std::chrono::seconds(10))) {
-        throw std::runtime_error(std::string("Action server ") + name + " is not available.");
-      }
+    if (!arm_client_->wait_for_action_server(std::chrono::seconds(10))) {
+      throw std::runtime_error(std::string("Action server ") + kArmAction + " is not available.");
+    }
+    if (!gripper_client_->wait_for_action_server(std::chrono::seconds(10))) {
+      throw std::runtime_error(std::string("Action server ") + kGripperAction + " is not available.");
     }
 
     RCLCPP_INFO(logger_, "Planning pipeline: MoveIt Pro Core");
     RCLCPP_INFO(logger_, "Planner ID: ProRRT");
     RCLCPP_INFO(logger_, "Velocity / acceleration scaling: %.2f / %.2f", kVelocityScaling, kAccelerationScaling);
+  }
+
+  /**
+   * @brief Open or close the gripper to an SRDF group_state of hand_controller
+   */
+  bool moveGripper(const std::string & target_name, const std::string & description)
+  {
+    RCLCPP_INFO(logger_, "Step: %s", description.c_str());
+
+    std::map<std::string, double> values;
+    if (!model_->getJointModelGroup(kGripperGroup)->getVariableDefaultPositions(target_name, values) ||
+      !values.contains(kGripperJoint))
+    {
+      RCLCPP_ERROR(logger_, "%s failed: group '%s' has no SRDF group_state '%s' setting %s.", description.c_str(),
+          kGripperGroup, target_name.c_str(), kGripperJoint);
+      return false;
+    }
+    GripperCommand::Goal goal;
+    goal.command.position = values.at(kGripperJoint);
+    auto goal_future = gripper_client_->async_send_goal(goal);
+    if (rclcpp::spin_until_future_complete(node_, goal_future, std::chrono::seconds(10)) !=
+      rclcpp::FutureReturnCode::SUCCESS || !goal_future.get())
+    {
+      RCLCPP_ERROR(logger_, "%s failed: %s did not accept the goal", description.c_str(), kGripperAction);
+      return false;
+    }
+    auto result_future = gripper_client_->async_get_result(goal_future.get());
+    if (rclcpp::spin_until_future_complete(node_, result_future, kResultTimeout) !=
+      rclcpp::FutureReturnCode::SUCCESS)
+    {
+      RCLCPP_ERROR(logger_, "%s failed: no result from %s within 60 s", description.c_str(), kGripperAction);
+      return false;
+    }
+    // A stalled close (the fingers stopped on the object) is a successful grasp.
+    const auto wrapped = result_future.get();
+    if (wrapped.code != rclcpp_action::ResultCode::SUCCEEDED) {
+      RCLCPP_ERROR(logger_, "%s failed: %s returned result code %d", description.c_str(), kGripperAction,
+          static_cast<int>(wrapped.code));
+      return false;
+    }
+    RCLCPP_INFO(logger_, "%s completed", description.c_str());
+    return true;
   }
 
   /**
@@ -210,7 +258,7 @@ private:
     RCLCPP_INFO(logger_, "Step: %s", description.c_str());
 
     const auto trajectory = planner_.planToNamedState(*state_monitor_->getCurrentState(), group, target_name);
-    return finishStep(group, trajectory, description);
+    return finishStep(trajectory, description);
   }
 
   /**
@@ -232,11 +280,10 @@ private:
 
     const auto trajectory =
       planner_.planToJointAngles(*state_monitor_->getCurrentState(), kArmGroup, joint_angles_rad);
-    return finishStep(kArmGroup, trajectory, description);
+    return finishStep(trajectory, description);
   }
 
-  bool finishStep(const std::string & group,
-      const tl::expected<trajectory_msgs::msg::JointTrajectory, std::string> & trajectory,
+  bool finishStep(const tl::expected<trajectory_msgs::msg::JointTrajectory, std::string> & trajectory,
       const std::string & description)
   {
     if (!trajectory) {
@@ -244,7 +291,7 @@ private:
       return false;
     }
     RCLCPP_INFO(logger_, "Planning successful! Executing...");
-    const auto error = execute(group, *trajectory);
+    const auto error = execute(*trajectory);
     if (!error.empty()) {
       RCLCPP_ERROR(logger_, "%s failed: %s", description.c_str(), error.c_str());
       return false;
@@ -256,11 +303,11 @@ private:
   /**
    * @brief Execute a trajectory on the group's controller; returns an empty string on success.
    */
-  std::string execute(const std::string & group, const trajectory_msgs::msg::JointTrajectory & trajectory)
+  std::string execute(const trajectory_msgs::msg::JointTrajectory & trajectory)
   {
-    const bool is_arm = group == kArmGroup;
-    const auto & client = is_arm ? arm_client_ : gripper_client_;
-    const std::string action = is_arm ? kArmAction : kGripperAction;
+    const auto & client = arm_client_;
+    const std::string action = kArmAction;
+    // Empty tolerances use the controller's configured defaults; empty admittance parameters disable admittance.
     FollowJointTrajectory::Goal goal;
     goal.trajectory = trajectory;
 
@@ -283,7 +330,7 @@ private:
     const auto wrapped = result_future.get();
     if (wrapped.code != rclcpp_action::ResultCode::SUCCEEDED || wrapped.result->error_code != 0) {
       return action + " failed with error code " +
-             std::to_string(wrapped.result->error_code) + ": " + wrapped.result->error_string;
+             std::to_string(wrapped.result->error_code) + ": " + wrapped.result->error_message;
     }
     return "";
   }

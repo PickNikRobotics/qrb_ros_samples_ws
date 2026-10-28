@@ -1,47 +1,29 @@
-# Controller names and joints match Qualcomm's simulation_sample_pick_and_place/config/ros2_controllers.yaml.
+# Controller names match Qualcomm's simulation_sample_pick_and_place/config/ros2_controllers.yaml. rm_group_controller
+# is a MoveIt Pro JointTrajectoryAdmittanceController (JTAC); with no force-torque sensor it runs without admittance.
+# hand_controller drives joint01, which the other three fingers follow (URDF mimic joints, MuJoCo equalities).
 controller_manager:
   ros__parameters:
     update_rate: 500  # Hz; MuJoCo steps at 2 ms
     rm_group_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
+      type: joint_trajectory_admittance_controller/JointTrajectoryAdmittanceController
     hand_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
+      type: position_controllers/GripperActionController
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
 rm_group_controller:
   ros__parameters:
-    joints:
-      - joint1
-      - joint2
-      - joint3
-      - joint4
-      - joint5
-      - joint6
-    command_interfaces:
-      - position
-    state_interfaces:
-      - position
-      - velocity
-    allow_nonzero_velocity_at_trajectory_end: false
+    planning_group_name: rm_group_controller
+    # The JTAC requires sensor_frames even without a force-torque sensor; empty ft_sensor_names disables admittance.
+    sensor_frames: [link8]
+    ee_frames: [link8]
+    # Joint accelerations for immediate stops (cancel); Qualcomm's joint_limits.yaml max_acceleration.
+    stop_accelerations: [3.0, 3.0, 3.0, 3.0, 3.0, 3.0]
 
 hand_controller:
   ros__parameters:
-    joints:
-      - joint01
-      - joint11
-      - joint02
-      - joint22
-    command_interfaces:
-      - position
-    state_interfaces:
-      - position
-      - velocity
-    allow_nonzero_velocity_at_trajectory_end: false
-    constraints:
-      # The fingers stop on the can before reaching the commanded close position.
-      goal_time: 0.0
-      joint01: {goal: 0.0}
-      joint11: {goal: 0.0}
-      joint02: {goal: 0.0}
-      joint22: {goal: 0.0}
+    joint: joint01
+    # The fingers stop on the can before reaching the commanded close position.
+    allow_stalling: true
+    stall_timeout: 0.05
+    goal_tolerance: 0.02

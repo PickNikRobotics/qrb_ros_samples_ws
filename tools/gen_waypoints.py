@@ -19,8 +19,8 @@ WAYPOINTS = [
     ("raise", "rm_group_controller", ARM, [-22 * DEG, -37 * DEG, -48 * DEG, 0.0, 0.0, 0.0]),
     ("place", "rm_group_controller", ARM, [-31 * DEG, -42 * DEG, -59 * DEG, 0.0, 0.0, 0.0]),
     ("re_raise", "rm_group_controller", ARM, [-22 * DEG, -35 * DEG, -52 * DEG, 0.0, 0.0, 0.0]),
-    ("open", "hand_controller", HAND, [0.0, -0.25, 0.0, 0.25]),
-    ("close", "hand_controller", HAND, [0.2, 0.0, -0.2, 0.0]),
+
+
 ]
 
 

@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(ament_cmake REQUIRED)
 find_package(control_msgs REQUIRED)
+find_package(moveit_pro_controllers_msgs REQUIRED)
 find_package(moveit_pro_base REQUIRED)
 find_package(moveit_pro_planning_scene_monitor REQUIRED)
 find_package(pro_rrt REQUIRED)
@@ -29,7 +30,8 @@ target_link_libraries(
   moveit_pro_planning_scene_monitor::planning_scene_monitor
   rclcpp::rclcpp
   rclcpp_action::rclcpp_action
-  ${control_msgs_TARGETS})
+  ${control_msgs_TARGETS}
+  ${moveit_pro_controllers_msgs_TARGETS})
 
 install(TARGETS motion_planner LIBRARY DESTINATION lib)
 install(TARGETS qrb_ros_arm_pick_place DESTINATION lib/${PROJECT_NAME})
@@ -40,6 +42,8 @@ if(BUILD_TESTING)
   ament_add_gtest(test_motion_planner test/test_motion_planner.cpp TIMEOUT 120)
   target_compile_definitions(test_motion_planner PRIVATE TEST_FIXTURES_DIR="${PROJECT_SOURCE_DIR}/test/fixtures")
   target_link_libraries(test_motion_planner motion_planner)
+  find_package(ament_cmake_pytest REQUIRED)
+  ament_add_pytest_test(test_node_startup_failure test/test_node_startup_failure.py TIMEOUT 90)
 endif()
 
 ament_package()

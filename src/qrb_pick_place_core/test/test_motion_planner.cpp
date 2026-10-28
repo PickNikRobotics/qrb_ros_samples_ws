@@ -117,15 +117,24 @@ TEST_F(MotionPlannerTest, PlansToQualcommPickAngles)
   }
 }
 
-TEST_F(MotionPlannerTest, GripperOpenClose)
+TEST_F(MotionPlannerTest, GripperStatesDriveMimicFingers)
 {
-  const qrb_pick_place_core::MotionPlanner planner(model_, kAccel, 0.3, 0.3);
-  const auto open = planner.planToNamedState(*start_, kHand, "open");
-  ASSERT_TRUE(open.has_value()) << open.error();
-  EXPECT_NEAR(position(*open, last(*open), "joint22"), 0.25, 1e-6);
-  const auto close = planner.planToNamedState(*start_, kHand, "close");
-  ASSERT_TRUE(close.has_value()) << close.error();
-  EXPECT_NEAR(position(*close, last(*close), "joint01"), 0.2, 1e-6);
+  // The node sends only joint01 to the gripper controller; the SRDF states and URDF mimic joints must still put
+  // the other fingers where Qualcomm's original independent values had them.
+  moveit_pro::base::RobotState open(*start_);
+  ASSERT_TRUE(open.setToDefaultValues(model_->getJointModelGroup(kHand), "open"));
+  open.update();
+  EXPECT_NEAR(open.getVariablePosition("joint01"), 0.0, 1e-6);
+  EXPECT_NEAR(open.getVariablePosition("joint11"), -0.25, 1e-6);
+  EXPECT_NEAR(open.getVariablePosition("joint02"), 0.0, 1e-6);
+  EXPECT_NEAR(open.getVariablePosition("joint22"), 0.25, 1e-6);
+  moveit_pro::base::RobotState close(*start_);
+  ASSERT_TRUE(close.setToDefaultValues(model_->getJointModelGroup(kHand), "close"));
+  close.update();
+  EXPECT_NEAR(close.getVariablePosition("joint01"), 0.2, 1e-6);
+  EXPECT_NEAR(close.getVariablePosition("joint11"), 0.0, 1e-6);
+  EXPECT_NEAR(close.getVariablePosition("joint02"), -0.2, 1e-6);
+  EXPECT_NEAR(close.getVariablePosition("joint22"), 0.0, 1e-6);
 }
 
 TEST_F(MotionPlannerTest, RespectsScaling)

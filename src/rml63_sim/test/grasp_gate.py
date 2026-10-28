@@ -27,6 +27,9 @@ OPEN = [0.0, -0.25, 0.0, 0.25]
 CLOSE = [0.2, 0.0, -0.2, 0.0]
 # coke1 body origin is the can base; a held can sits within one can height of the tcp site.
 MAX_HELD_OFFSET = 0.15
+# Paired fingers must stay mirrored while the gripper opens over the box; asymmetry flicks the can over on release.
+MAX_FINGER_ASYMMETRY = 0.02
+RELEASE_REPEATS = 8
 BOX_HALF_HEIGHT = 0.15
 
 
@@ -47,7 +50,9 @@ class Sim:
         for k in range(1, steps + 1):
             q = start + (np.array(goal) - start) * k / steps
             for n, v in zip(names, q):
-                self.d.ctrl[self.act[n]] = v
+                # Coupled gripper: only joint01 has an actuator; the other fingers follow it.
+                if n in self.act:
+                    self.d.ctrl[self.act[n]] = v
             mujoco.mj_step(self.m, self.d)
         for _ in range(int(settle / self.m.opt.timestep)):
             mujoco.mj_step(self.m, self.d)
@@ -60,7 +65,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("scene")
     parser.add_argument("--full", action="store_true")
+    parser.add_argument("--release", action="store_true", help="repeat pick/place and require upright landings")
     args = parser.parse_args()
+
+    if args.release:
+        release_gate(args.scene)
+        return
 
     sim = Sim(args.scene)
     sim.move(ARM, READY)
@@ -99,6 +109,37 @@ def main():
     if abs(final[2] - box_top) > 0.01 or upright < 0.95:
         print(f"FAIL: can not resting upright on the box (z {final[2]:.3f} vs top {box_top:.3f}, up {upright:.2f})")
         sys.exit(1)
+    print("PASS")
+
+
+def release_gate(scene):
+    """Pick and place RELEASE_REPEATS times with perturbed gripper timing; every can must land upright."""
+    for run in range(RELEASE_REPEATS):
+        sim = Sim(scene)
+        sim.move(ARM, READY)
+        sim.move(HAND, OPEN, duration=1.0)
+        sim.move(ARM, PICK)
+        sim.move(HAND, CLOSE, duration=1.0, settle=1.0)
+        sim.move(ARM, RAISE)
+        sim.move(ARM, PLACE)
+        worst = 0.0
+        # Vary the open duration so the release does not land on one lucky contact timing.
+        steps = int((0.6 + 0.1 * run) / sim.m.opt.timestep)
+        start = sim.joints(HAND)
+        for k in range(1, steps + 1):
+            q = start + (np.array(OPEN) - start) * k / steps
+            for n, v in zip(HAND, q):
+                if n in sim.act:
+                    sim.d.ctrl[sim.act[n]] = v
+            mujoco.mj_step(sim.m, sim.d)
+            j = sim.joints(HAND)
+            worst = max(worst, abs(j[0] + j[2]), abs(j[1] + j[3]))
+        sim.move(ARM, RE_RAISE)
+        up = sim.d.body("coke1").xmat.reshape(3, 3)[2, 2]
+        print(f"run {run}: finger asymmetry {worst:.3f} rad, coke1 up {up:.2f}, z {sim.coke()[2]:.3f}")
+        if worst > MAX_FINGER_ASYMMETRY or up < 0.95:
+            print("FAIL: asymmetric release or can tipped")
+            sys.exit(1)
     print("PASS")
 
 
