@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!-- RML-63 arm + gripper for the MoveIt Pro Simulator, adapted from Qualcomm's
+     simulation_sample_pick_and_place (BSD-3-Clause-Clear) and RealMan's ros2_rm_robot (Apache-2.0). -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="rml_63_arm_robot">
+  <xacro:arg name="mujoco_model" default="description/scene.xml" />
+  <xacro:arg name="mujoco_model_package" default="rml63_sim" />
+  <xacro:arg name="mujoco_viewer" default="false" />
+
+  <xacro:include filename="$(find rml63_sim)/description/urdf/rml_63.urdf" />
+  <xacro:include filename="$(find rml63_sim)/description/urdf/gripper.urdf" />
+
+  <xacro:rml_63 ns=""/>
+  <xacro:rml_gripper ns=""/>
+
+  <link name="world"/>
+  <joint name="arm_virtual_joint" type="fixed">
+    <parent link="world"/>
+    <child link="arm_base_link"/>
+  </joint>
+
+  <ros2_control name="rml63_mujoco_control" type="system">
+    <hardware>
+      <plugin>picknik_mujoco_ros/MujocoSystem</plugin>
+      <param name="mujoco_model">$(arg mujoco_model)</param>
+      <param name="mujoco_model_package">$(arg mujoco_model_package)</param>
+      <param name="render_publish_rate">10</param>
+      <param name="tf_publish_rate">60</param>
+      <param name="lidar_publish_rate">10</param>
+      <param name="mujoco_viewer">$(arg mujoco_viewer)</param>
+    </hardware>
+    <xacro:macro name="pos_joint" params="name">
+      <joint name="${name}">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+    </xacro:macro>
+    <xacro:pos_joint name="joint1"/>
+    <xacro:pos_joint name="joint2"/>
+    <xacro:pos_joint name="joint3"/>
+    <xacro:pos_joint name="joint4"/>
+    <xacro:pos_joint name="joint5"/>
+    <xacro:pos_joint name="joint6"/>
+    <xacro:pos_joint name="joint01"/>
+    <xacro:pos_joint name="joint11"/>
+    <xacro:pos_joint name="joint02"/>
+    <xacro:pos_joint name="joint22"/>
+  </ros2_control>
+</robot>
