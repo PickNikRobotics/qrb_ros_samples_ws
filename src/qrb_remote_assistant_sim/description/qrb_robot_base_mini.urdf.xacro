@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<!-- Qualcomm's QRB robot base mini (qrb_ros_simulation, BSD-3-Clause) for the MoveIt Pro Simulator.
+     The Gazebo diff-drive and lidar plugins are replaced by diff_drive_controller and a MuJoCo rangefinder lidar. -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="qrb_robot_base_mini">
+  <xacro:arg name="mujoco_model" default="description/scene.xml" />
+  <xacro:arg name="mujoco_viewer" default="false" />
+
+  <xacro:include filename="$(find qrb_amr_nav_sim)/description/urdf/qrb_robot_base_mini.urdf" />
+  <xacro:qrb_robot_base_mini ns=""/>
+
+  <ros2_control name="qrb_robot_base_mini_mujoco" type="system">
+    <hardware>
+      <plugin>picknik_mujoco_ros/MujocoSystem</plugin>
+      <param name="mujoco_model">$(arg mujoco_model)</param>
+      <param name="mujoco_model_package">qrb_remote_assistant_sim</param>
+      <param name="mujoco_viewer">$(arg mujoco_viewer)</param>
+      <param name="mujoco_keyframe">default</param>
+      <!-- Cartographer owns map -> odom -> base_footprint and robot_state_publisher the links below it.
+           MujocoSystem publishes mj_world -> map as identity, so simulator sites (scene camera) hang off the map
+           frame, which Cartographer starts at the spawn pose. -->
+      <param name="odom_frame">map</param>
+      <param name="publish_mj_world_tf">true</param>
+      <param name="base_link_name">base_link</param>
+      <!-- The casters are URDF continuous joints about a diagonal axis but MuJoCo ball joints (they roll freely);
+           nothing commands them. -->
+      <param name="ignore_joint_validation">caster_wheel_joint1 caster_wheel_joint2 caster_wheel_joint3 caster_wheel_joint4</param>
+      <param name="tf_publish_rate">60</param>
+      <!-- Qualcomm's RGB camera updates at 15 Hz (rgb_camera_params.yaml). -->
+      <param name="render_publish_rate">15</param>
+      <!-- Qualcomm's lidar (config/params/qrb_robot_base_mini_laser_params.yaml) publishes at 15 Hz on /scan. -->
+      <param name="lidar_publish_rate">15</param>
+    </hardware>
+    <!-- The rangefinder lidar (sites laser_scan-0000 .. -1799 on the laser body) publishes on /scan, as Qualcomm's
+         Gazebo lidar did, in frame laser_scan_ROS. -->
+    <!-- Qualcomm's RGB camera topics (rgb_camera_params.yaml), which the YOLO pipeline and the person check read. -->
+    <sensor name="camera">
+      <param name="rgb_topic">/camera/color/image_raw</param>
+      <param name="camera_info_topic">/camera/color/camera_info</param>
+    </sensor>
+    <sensor name="laser_scan">
+      <param name="topic">/scan</param>
+    </sensor>
+    <joint name="wheel_left_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="wheel_right_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+</robot>

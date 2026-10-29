@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>qrb_remote_assistant_sim</name>
+  <version>0.1.0</version>
+  <description>MoveIt Pro Simulator (MuJoCo) robot configuration package for Qualcomm's remote assistant sample (qrb_ros_samples simulation_remote_assistant): scripted mapping, map save and relocalization, Nav2, and a person check in the office world.</description>
+  <maintainer email="support@picknik.ai">MoveIt Pro Maintainer</maintainer>
+  <license>BSD-3-Clause</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>diff_drive_controller</exec_depend>
+  <exec_depend>joint_state_broadcaster</exec_depend>
+  <exec_depend>lunar_sim_behaviors</exec_depend>
+  <exec_depend>moveit_studio_agent</exec_depend>
+  <exec_depend>picknik_mujoco_ros</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>xacro</exec_depend>
+  <!-- Upstream Cartographer from the ROS apt repository; see README.md for switching to Qualcomm's fork. -->
+  <exec_depend>cartographer_ros</exec_depend>
+  <exec_depend>nav2_bringup</exec_depend>
+  <exec_depend>qrb_amr_nav_sim</exec_depend>
+  <exec_depend>qrb_amr_sim</exec_depend>
+  <exec_depend>qrb_ros_slam_msgs</exec_depend>
+  <exec_depend>simulation_remote_assistant</exec_depend>
+  <exec_depend>cartographer_ros_msgs</exec_depend>
+  <exec_depend>visualization_msgs</exec_depend>
+  <exec_depend>moveit_pro_sam3</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

@@ -1,0 +1,4 @@
+# The Desktop App's jog pad, gamepad, and Quest publish VelocityForceCommand on /pose_jog/<planning_group>;
+# TeleoperateBase (lunar_sim_behaviors) subscribes to /pose_jog/base and forwards it to /cmd_vel.
+planning_groups: ['base']
+controllers: ['platform_velocity_controller']

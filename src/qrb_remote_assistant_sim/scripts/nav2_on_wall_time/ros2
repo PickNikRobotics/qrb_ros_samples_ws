@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Put ahead of the real ros2 on nav_preparation_node's PATH only. Qualcomm's node starts Nav2 after relocalization with
+# `ros2 launch nav2_bringup navigation_launch.py use_sim_time:=true`; this runs qrb_remote_assistant_sim's
+# launch/nav2.launch.py at that point instead (wall time, stamped cmd_vel). Every other ros2 command runs unchanged.
+# On a host running Qualcomm's own setup, do not use this.
+self_dir=$(cd "$(dirname "$0")" && pwd)
+PATH=$(printf '%s' "$PATH" | tr ':' '\n' | grep -vxF "$self_dir" | paste -sd:)
+if [ "$1" = launch ] && [ "$2" = nav2_bringup ] && [ "$3" = navigation_launch.py ]; then
+  echo "[qrb_remote_assistant_sim] starting Nav2 on wall time with stamped cmd_vel (launch/nav2.launch.py)" >&2
+  exec ros2 launch qrb_remote_assistant_sim nav2.launch.py
+fi
+exec ros2 "$@"

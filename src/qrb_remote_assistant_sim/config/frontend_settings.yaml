@@ -1,0 +1,4 @@
+# The base's TF tree roots at map (MujocoSystem publishes mj_world -> map; Cartographer publishes map -> odom ->
+# base_footprint), not the 3D Visualizer's default world frame. Render relative to map so the base, the SLAM map,
+# and Nav2's plan are drawn in the same frame.
+referenceFrame: map

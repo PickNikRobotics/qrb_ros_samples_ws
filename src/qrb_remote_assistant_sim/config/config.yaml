@@ -1,0 +1,84 @@
+# MoveIt Pro robot configuration package for Qualcomm's remote assistant sample, ported from qrb_ros_samples'
+# simulation_remote_assistant: scripted mapping, map save and relocalization through /qrb_slam_command, Nav2 to a
+# named location, and a person check, in the office world. Base and Nav2 wiring follow qrb_amr_nav_sim.
+runtime_launch_file:
+  package: "qrb_remote_assistant_sim"
+  path: "launch/runtime.launch.xml"
+
+hardware:
+  launch_control_node: True
+  launch_robot_state_publisher: True
+  robot_description:
+    urdf:
+      package: "qrb_remote_assistant_sim"
+      path: "description/qrb_robot_base_mini.urdf.xacro"
+    srdf:
+      package: "qrb_remote_assistant_sim"
+      path: "config/moveit/qrb_robot_base_mini.srdf"
+    urdf_params:
+      - mujoco_model: "description/scene.xml"
+      - mujoco_viewer: "false"
+
+  # Qualcomm's map_nav_setup pipeline (mapping, map save, relocalization, Nav2), started with the drivers.
+  additional_driver_launch_file:
+    package: "qrb_remote_assistant_sim"
+    path: "launch/remote_assistant_pipeline.launch.py"
+
+ros_global_params:
+  use_sim_time: False
+
+moveit_params:
+  joint_group_name: "base"
+  kinematics:
+    package: "qrb_remote_assistant_sim"
+    path: "config/moveit/kinematics.yaml"
+  pose_jog:
+    package: "qrb_remote_assistant_sim"
+    path: "config/moveit/pose_jog.yaml"
+  joint_jog:
+    package: "qrb_remote_assistant_sim"
+    path: "config/moveit/joint_jog.yaml"
+  publish:
+    planning_scene: True
+    geometry_updates: True
+    state_updates: True
+    transforms_updates: True
+
+ros2_control:
+  config:
+    package: "qrb_remote_assistant_sim"
+    path: "config/control/qrb_robot_base_mini.ros2_control.yaml"
+  controllers_active_at_startup:
+    - "joint_state_broadcaster"
+    - "platform_velocity_controller"
+  # Nav2 and TeleoperateBase both publish TwistStamped on /cmd_vel; Nav2 and Cartographer read /odom.
+  controller_shared_topics:
+    /cmd_vel:
+      - "/platform_velocity_controller/cmd_vel"
+    /odom:
+      - "/platform_velocity_controller/odom"
+
+objectives:
+  behavior_loader_plugins:
+    core:
+      - "moveit_pro::behaviors::CoreBehaviorsLoader"
+      - "moveit_pro::behaviors::MTCCoreBehaviorsLoader"
+      - "moveit_pro::behaviors::ConverterBehaviorsLoader"
+      - "moveit_pro::behaviors::NavBehaviorsLoader"
+      - "moveit_pro::behaviors::VisionBehaviorsLoader"
+      - "moveit_pro::behaviors::MujocoBehaviorsLoader"
+    lunar_sim:
+      - "lunar_sim_behaviors::LunarSimBehaviorsLoader"
+  objective_library_paths:
+    core_objectives:
+      package_name: "moveit_pro_objectives"
+      relative_path: "objectives/core"
+    mujoco_objectives:
+      package_name: "moveit_pro_objectives"
+      relative_path: "objectives/mujoco"
+    qrb_remote_assistant_objectives:
+      package_name: "qrb_remote_assistant_sim"
+      relative_path: "objectives"
+  waypoints_file:
+    package_name: "qrb_remote_assistant_sim"
+    relative_path: "waypoints/waypoints.yaml"
