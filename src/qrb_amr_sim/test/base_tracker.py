@@ -1,8 +1,8 @@
 """Measure the QRB base's actual motion from simulation ground truth while commands are sent.
 
-Reads the base_footprint body pose from the MoveIt Pro Simulator's TF (mj_world -> base_footprint is not published, so
-this reads odom -> base_footprint from diff_drive_controller and mj_world -> odom from MujocoSystem; their product is
-ground truth only because odom starts at the spawn pose). Reports distance and yaw change over a window.
+Reads base_link_ground_truth, the frame the MoveIt Pro Simulator publishes under mj_world at the base body's true pose.
+mj_world -> base_footprint would resolve through the controller's odometry, which agrees with the command by
+construction. Reports distance and yaw change over a window.
 
 Usage: python3 base_tracker.py <seconds>
 """
@@ -21,12 +21,12 @@ def pose(buffer, node):
     while time.monotonic() < deadline:
         rclpy.spin_once(node, timeout_sec=0.05)
         try:
-            t = buffer.lookup_transform("mj_world", "base_footprint", Time()).transform
+            t = buffer.lookup_transform("mj_world", "base_link_ground_truth", Time()).transform
         except Exception:
             continue
         q = t.rotation
         return t.translation.x, t.translation.y, math.atan2(2 * (q.w * q.z + q.x * q.y), 1 - 2 * (q.y * q.y + q.z * q.z))
-    raise RuntimeError("no mj_world -> base_footprint TF")
+    raise RuntimeError("no mj_world -> base_link_ground_truth TF")
 
 
 def main(seconds):

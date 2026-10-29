@@ -53,7 +53,6 @@ moveit_pro::base::RobotModelPtr loadRobotModel(const rclcpp::Node::SharedPtr& no
   {
     throw std::runtime_error("Failed to parse the robot_description_semantic parameter as SRDF.");
   }
-#ifdef QRB_HAVE_ROBOT_MODEL_CREATE
   // Validates the model, including that mimic joints cannot be driven past their own limits.
   auto model = moveit_pro::base::RobotModel::create(urdf, srdf);
   if (!model)
@@ -61,9 +60,6 @@ moveit_pro::base::RobotModelPtr loadRobotModel(const rclcpp::Node::SharedPtr& no
     throw std::runtime_error("The robot description was rejected: " + model.error());
   }
   return *model;
-#else
-  return std::make_shared<moveit_pro::base::RobotModel>(urdf, srdf);
-#endif
 }
 
 /** @brief Read joint_limits.yaml-style max_acceleration parameters (joint_limits.<joint>.max_acceleration). */

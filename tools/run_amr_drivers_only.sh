@@ -3,7 +3,7 @@
 # unmodified simple_motion node. Runs in a throwaway container from the workspace's Runtime image.
 set -u
 WS=$(cd "$(dirname "$0")/.." && pwd)
-IMAGE=${IMAGE:-moveit-pro-runtime:10.1.1-jazzy-qrb_moveit_pro_ws}
+IMAGE=${IMAGE:-moveit-pro-runtime:10.2.0-jazzy-qrb_moveit_pro_ws}
 LICENSE=$(grep ^MOVEIT_LICENSE_KEY "$HOME/src/moveit_pro/.env" | cut -d= -f2)
 # The install space records the path it was built at inside the Runtime container, so mount the workspace there.
 UWS=/home/$(id -un)/user_ws

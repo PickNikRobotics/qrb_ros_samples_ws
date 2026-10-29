@@ -19,10 +19,6 @@ find_package(rclcpp_action REQUIRED)
 find_package(trajectory_msgs REQUIRED)
 
 add_library(motion_planner SHARED src/motion_planner.cpp)
-# RobotModel::create, which validates mimic joint limits, first ships in MoveIt Pro 10.2.
-if(moveit_pro_base_VERSION VERSION_GREATER_EQUAL 10.2)
-  target_compile_definitions(motion_planner PUBLIC QRB_HAVE_ROBOT_MODEL_CREATE)
-endif()
 target_include_directories(motion_planner PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
 target_link_libraries(
   motion_planner

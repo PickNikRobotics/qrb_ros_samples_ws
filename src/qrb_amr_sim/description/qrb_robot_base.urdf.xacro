@@ -20,10 +20,6 @@
       <param name="odom_frame">odom</param>
       <param name="publish_mj_world_tf">true</param>
       <param name="base_link_name">base_link</param>
-      <!-- The MJCF free joint is on base_footprint, above base_link, so 10.1.x classifies the base itself as a scene
-           object and publishes mj_world -> base_footprint, a second TF parent that makes the base flicker in the 3D
-           Visualizer. The scene has no other free bodies. Fixed upstream in 10.2.0. -->
-      <param name="publish_object_tf">false</param>
       <!-- The casters are URDF continuous joints about a diagonal axis but MuJoCo ball joints (they roll freely);
            nothing commands them. -->
       <param name="ignore_joint_validation">caster_wheel_joint1 caster_wheel_joint2 caster_wheel_joint3 caster_wheel_joint4</param>
