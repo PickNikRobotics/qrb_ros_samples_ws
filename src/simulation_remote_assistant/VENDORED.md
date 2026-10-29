@@ -1,0 +1,1 @@
+Vendored unchanged from qualcomm-qrb-ros/qrb_ros_samples robotics/simulation_remote_assistant (BSD-3-Clause-Clear), commit 4943268. Qualcomm's build_map_node, nav_preparation_node, and task_manager_node run as they are; qrb_remote_assistant_sim supplies what their README sets up around them.
