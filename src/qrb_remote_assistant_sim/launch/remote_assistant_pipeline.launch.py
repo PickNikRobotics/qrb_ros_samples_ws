@@ -95,6 +95,7 @@ def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument("slam_backend", default_value="upstream", description="upstream or qualcomm"),
+            DeclareLaunchArgument("detector", default_value="sam3", description="sam3 or qualcomm"),
             DeclareLaunchArgument(
                 "control_period",
                 default_value="0.05",
@@ -125,6 +126,14 @@ def generate_launch_description():
             mapping,
             occupancy,
             build_map,
+            # Publishes the QRB Detect Person Objective's count as the Detection2DArray Qualcomm's YOLO pipeline
+            # would; on the IQ-9 launch their yolo_detectcion.launch.py instead.
+            Node(
+                package="qrb_remote_assistant_sim",
+                executable="detection_bridge.py",
+                output="screen",
+                condition=IfCondition(PythonExpression(["'", LaunchConfiguration("detector"), "' == 'sam3'"])),
+            ),
             # map_nav_setup.py: when build_map_node exits, stop the mapping Cartographer, start it again (here on the
             # saved map), wait 5 s, then start nav_preparation_node.
             RegisterEventHandler(

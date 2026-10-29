@@ -25,8 +25,11 @@
            nothing commands them. -->
       <param name="ignore_joint_validation">caster_wheel_joint1 caster_wheel_joint2 caster_wheel_joint3 caster_wheel_joint4</param>
       <param name="tf_publish_rate">60</param>
-      <!-- Qualcomm's RGB camera updates at 15 Hz (rgb_camera_params.yaml). -->
-      <param name="render_publish_rate">15</param>
+      <!-- Qualcomm's RGB camera updates at 15 Hz (rgb_camera_params.yaml). On the CPU image the Simulator renders in
+           software (Mesa llvmpipe, about 200 ms per 1280x720 frame), so 15 Hz on two cameras starves the physics
+           thread and Qualcomm's odometry-timed mapping route turns wide. 2 Hz still gives the person check, which
+           takes much longer per frame, a fresh image. Raise it on a GPU image. -->
+      <param name="render_publish_rate">2</param>
       <!-- Qualcomm's lidar (config/params/qrb_robot_base_mini_laser_params.yaml) publishes at 15 Hz on /scan. -->
       <param name="lidar_publish_rate">15</param>
     </hardware>

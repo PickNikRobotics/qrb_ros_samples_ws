@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<root BTCPP_format="4" main_tree_to_execute="QRB Detect Person">
+  <!-- Stands in for Qualcomm's YOLO pipeline (qrb_ros_nn_inference with yolov8_det_qcs9075.bin) until Qualcomm's model
+       and NPU are available. SAM3 segments "person" in the base camera's image; detection_bridge.py turns each count
+       into the vision_msgs/Detection2DArray Qualcomm's task_manager_node reads on /yolo_detect_result. On the IQ-9,
+       launch Qualcomm's yolo_detectcion.launch.py instead and do not run this Objective. -->
+  <BehaviorTree
+    ID="QRB Detect Person"
+    _description="Looks for a person in the QRB base camera with SAM3 and reports the count to Qualcomm's task manager, in place of their YOLO model. Repeats until stopped."
+    _favorite="false"
+  >
+    <Decorator ID="KeepRunningUntilFailure">
+      <Control ID="Sequence" name="DetectOnce">
+        <Action
+          ID="GetImage"
+          topic_name="/camera/color/image_raw"
+          message_out="{image}"
+          message_timeout_sec="5.0"
+          publisher_timeout_sec="5.0"
+        />
+        <Action
+          ID="GetMasks2DFromExemplar"
+          model_package="moveit_pro_sam3"
+          model_bundle_manifest="models/model.yaml"
+          confidence_threshold="0.5"
+          target_image="{image}"
+          text_prompt="person"
+          masks2d="{masks2d}"
+          mask_count="{mask_count}"
+          confidence_scores_str="{confidence_scores_str}"
+        />
+        <!-- PublishString takes a string; the script's .. concatenation turns the count into one. -->
+        <Action ID="Script" code="person_count := '' .. mask_count" />
+        <Action ID="PublishString" message="{person_count}" topic="/qrb_person_count" />
+        <Action ID="PublishMask2D" image="{image}" masks="{masks2d}" bounding_box_labels="{confidence_scores_str}" />
+      </Control>
+    </Decorator>
+  </BehaviorTree>
+  <TreeNodesModel>
+    <SubTree ID="QRB Detect Person">
+      <MetadataFields>
+        <Metadata subcategory="QRB Samples" />
+        <Metadata runnable="true" />
+      </MetadataFields>
+    </SubTree>
+  </TreeNodesModel>
+</root>

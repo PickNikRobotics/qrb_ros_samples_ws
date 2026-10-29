@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<root BTCPP_format="4" main_tree_to_execute="QRB Detect Person In File">
+  <!-- Runs the QRB Detect Person check on a saved base-camera frame, to tune the prompt and threshold without
+       driving. objectives/test_images holds the view from the office goal and an empty wall. -->
+  <BehaviorTree
+    ID="QRB Detect Person In File"
+    _description="Runs SAM3's person check on a saved QRB base-camera image and publishes the count, as QRB Detect Person does live."
+    _favorite="false"
+  >
+    <Control ID="Sequence" name="DetectInFile">
+      <Action
+        ID="LoadImageFromFile"
+        package_name="qrb_remote_assistant_sim"
+        file_path="{image_file}"
+        image="{image}"
+      />
+      <Action
+        ID="GetMasks2DFromExemplar"
+        model_package="moveit_pro_sam3"
+        model_bundle_manifest="models/model.yaml"
+        confidence_threshold="0.5"
+        target_image="{image}"
+        text_prompt="person"
+        masks2d="{masks2d}"
+        mask_count="{mask_count}"
+        confidence_scores_str="{confidence_scores_str}"
+      />
+      <Action ID="Script" code="person_count := '' .. mask_count" />
+      <Action ID="PublishString" message="{person_count}" topic="/qrb_person_count" />
+      <Action ID="PublishMask2D" image="{image}" masks="{masks2d}" bounding_box_labels="{confidence_scores_str}" />
+    </Control>
+  </BehaviorTree>
+  <TreeNodesModel>
+    <SubTree ID="QRB Detect Person In File">
+      <input_port name="image_file" default="objectives/test_images/office_goal.png" />
+      <MetadataFields>
+        <Metadata subcategory="QRB Samples" />
+        <Metadata runnable="true" />
+      </MetadataFields>
+    </SubTree>
+  </TreeNodesModel>
+</root>
