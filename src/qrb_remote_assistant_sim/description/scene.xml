@@ -1,0 +1,54 @@
+<!-- Qualcomm's QRB robot base mini in the office world, for the MoveIt Pro Simulator.
+     Recreates qrb_ros_sim_gazebo/worlds/office.sdf with the base at the remote assistant sample's spawn
+     (initial_x 1.0, initial_y 6.0). Walls are office.sdf's own boxes (office_walls.xml); furniture and the seated
+     people are the Fuel models office.sdf includes, at its poses (office_furniture.xml). -->
+<mujoco model="qrb_remote_assistant_office">
+  <compiler angle="radian" autolimits="true" meshdir="assets" texturedir="assets" />
+  <!-- 4 ms, as in qrb_amr_nav_sim: the 1800-ray lidar is cast every step. -->
+  <option integrator="implicitfast" timestep="0.004" />
+  <!-- Every non-lidar camera renders into this buffer, so it matches the base camera's 1280x720. -->
+  <visual>
+    <global offwidth="1280" offheight="720" />
+    <!-- An indoor room lit from above leaves the base camera's view under the desks nearly black; ambient light
+         stands in for Gazebo's office lighting so the person check sees the seated people. -->
+    <headlight ambient="0.35 0.35 0.35" diffuse="0.4 0.4 0.4" />
+  </visual>
+
+  <default>
+    <default class="office">
+      <geom rgba="0.93 0.93 0.9 1" />
+    </default>
+    <default class="furniture">
+      <geom contype="0" conaffinity="0" group="1" />
+    </default>
+    <default class="furniture_collision">
+      <geom group="3" rgba="0 0 0 0" />
+    </default>
+  </default>
+
+  <asset>
+    <texture name="grid" type="2d" builtin="checker" rgb1="0.55 0.55 0.52" rgb2="0.6 0.6 0.57" width="512" height="512" />
+    <material name="groundplane" texture="grid" texrepeat="40 40" reflectance="0.02" />
+  </asset>
+
+  <include file="qrb_robot_base_mini.xml" />
+  <include file="office_walls.xml" />
+  <include file="office_furniture.xml" />
+
+  <worldbody>
+    <light pos="0 4 6" dir="0 0 -1" directional="true" diffuse="0.6 0.6 0.6" />
+    <light pos="5 0 2.4" dir="0 0 -1" diffuse="0.5 0.5 0.5" />
+    <geom name="floor" type="plane" size="0 0 0.05" material="groundplane" friction="1.0 0.005 0.0001" />
+
+    <!-- Scene camera above the spawn corner, looking at the desks around the office goal (3.087, 0.108).
+         The optical-frame site is the camera orientation rotated 180 degrees about its x-axis. -->
+    <camera name="scene_camera" pos="-1.5 8.5 5.5" fovy="70" mode="fixed" resolution="1280 720"
+      xyaxes="-0.8412 -0.5408 0.0000 0.2982 -0.4638 0.8343" />
+    <site name="scene_camera_optical_frame" pos="-1.5 8.5 5.5" xyaxes="-0.8412 -0.5408 0.0000 -0.2982 0.4638 -0.8343" />
+  </worldbody>
+
+  <keyframe>
+    <!-- base_footprint free joint at the sample's spawn (1.0, 6.0), identity orientation; casters at rest. -->
+    <key name="default" qpos="1.0 6.0 0 1 0 0 0  0 0  1 0 0 0  1 0 0 0  1 0 0 0  1 0 0 0" ctrl="0 0" />
+  </keyframe>
+</mujoco>
