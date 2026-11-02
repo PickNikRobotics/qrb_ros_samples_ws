@@ -1,17 +1,11 @@
 #!/usr/bin/env bash
-# Layer-2 gate for qrb_amr_nav_sim: simulator, controllers, Cartographer, and Nav2 only (no MoveIt Pro Runtime), then
-# one /navigate_to_pose goal. Runs in a throwaway container from the workspace's Runtime image.
+# Checks qrb_amr_nav_sim with the Simulator, controllers, Cartographer, and Nav2 only (no MoveIt Pro Runtime), then
+# sends one /navigate_to_pose goal. Runs in a throwaway container from the workspace's user image; see
+# tools/drivers_only_env.sh for the license, image, and ROS domain it uses.
 # Usage: run_nav_drivers_only.sh [goal_x goal_y]
 set -u
-WS=$(cd "$(dirname "$0")/.." && pwd)
-IMAGE=${IMAGE:-moveit-pro-runtime:10.2.0-jazzy-qrb_moveit_pro_ws}
-LICENSE=$(grep ^MOVEIT_LICENSE_KEY "$HOME/src/moveit_pro/.env" | cut -d= -f2)
-# The install space records the path it was built at inside the Runtime container, so mount the workspace there.
-UWS=/home/$(id -un)/user_ws
-docker run --rm --network host -u "$(id -u):$(id -g)" -e HOME=/tmp -e MOVEIT_LICENSE_KEY="$LICENSE" \
-  -e ROS_DOMAIN_ID=77 -e RMW_IMPLEMENTATION=rmw_cyclonedds_cpp -e MUJOCO_GL=egl \
-  -v "$WS/docker/cyclonedds_loopback.xml:/cyclonedds.xml:ro" -e CYCLONEDDS_URI=file:///cyclonedds.xml \
-  -v "$WS:$UWS" -e UWS="$UWS" -e GX="${1:-2.0}" -e GY="${2:-0.0}" --entrypoint bash "$IMAGE" -c '
+source "$(dirname "$0")/drivers_only_env.sh"
+docker run "${DRIVERS_ONLY_ARGS[@]}" -e GX="${1:-2.0}" -e GY="${2:-0.0}" --entrypoint bash "$IMAGE" -c '
     source /opt/ros/jazzy/setup.bash; source /opt/overlay_ws/install/setup.bash; source $UWS/install/setup.bash
     ros2 launch qrb_amr_nav_sim sim_drivers_only.launch.py > /tmp/sim.log 2>&1 &
     sleep 25

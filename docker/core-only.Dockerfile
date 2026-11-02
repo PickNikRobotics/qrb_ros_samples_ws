@@ -1,8 +1,9 @@
 # Clean ROS 2 Jazzy plus only the released MoveIt Pro Core packages, with no Runtime installed.
-# Build context: ~/src/qrb_moveit_pro_ws. Expects docker/core-10.2.0/debs/*.deb (unzipped Core archive).
+# Build from the repository root: docker build -f docker/core-only.Dockerfile -t qrb-core-only .
+# Expects the MoveIt Pro Core archive unzipped into docker/core/ (its .deb files in docker/core/debs/).
 FROM ros:jazzy
 
-COPY docker/core-10.2.0/debs /tmp/core-debs
+COPY docker/core/debs /tmp/core-debs
 RUN apt-get update \
     && apt-get install -y --no-install-recommends /tmp/core-debs/*.deb ros-jazzy-rmw-cyclonedds-cpp \
     && rm -rf /var/lib/apt/lists/* /tmp/core-debs

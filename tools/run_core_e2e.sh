@@ -1,29 +1,34 @@
 #!/usr/bin/env bash
-# End-to-end check of the ported pick-and-place node on MoveIt Pro Core alone: the drivers-only sim in the dev
-# container, the node in the Core-only container (docker/core-only.Dockerfile), on the same ROS domain.
+# End-to-end check of the ported pick-and-place node on MoveIt Pro Core alone: the rml63_sim drivers-only sim in a
+# container from the workspace's user image (tools/drivers_only_env.sh), and the node in the Core-only image
+# (docker/core-only.Dockerfile), on the same ROS domain.
 # Usage: tools/run_core_e2e.sh [--kill-sim-at <seconds>]
+#   CORE_IMAGE  the Core-only image; default qrb-core-only, built with
+#               docker build -f docker/core-only.Dockerfile -t qrb-core-only .
 # Exit: 0 only if the Core node exited cleanly (ros2 launch itself always exits 0) and, without --kill-sim-at,
 # coke1 ends on the box.
-cd /home/kiswatz/src/moveit_pro || exit 1
+set -u
+source "$(dirname "$0")/drivers_only_env.sh"
+CORE_IMAGE=${CORE_IMAGE:-qrb-core-only}
 KILL_AT=""
 [ "${1:-}" = "--kill-sim-at" ] && KILL_AT=$2
-LICENSE=$(grep ^MOVEIT_LICENSE_KEY .env | cut -d= -f2)
-DOMAIN=$(docker compose exec -T dev-nvidia printenv ROS_DOMAIN_ID | tr -d '\r')
-RMW=$(docker compose exec -T dev-nvidia printenv RMW_IMPLEMENTATION | tr -d '\r')
-dev() { docker compose exec -T -u kiswatz dev-nvidia bash -c "source /etc/skel/.moveit-pro-bashrc && source ~/user_ws/install/setup.bash && $1"; }
+SIM=qrb-core-e2e-sim-$$
+ROS_SETUP='source /opt/ros/jazzy/setup.bash && source /opt/overlay_ws/install/setup.bash && source $UWS/install/setup.bash'
+sim() { docker exec "$SIM" bash -c "$ROS_SETUP && $1"; }
+stop_sim() { docker stop -t 5 "$SIM" >/dev/null 2>&1; }
+trap stop_sim EXIT
 
-dev "~/user_ws/tools/stop_sim.sh"
-dev "nohup ros2 launch rml63_sim sim_drivers_only.launch.py > /tmp/sim_launch.log 2>&1 &"
+docker run -d --name "$SIM" "${DRIVERS_ONLY_ARGS[@]}" --entrypoint bash "$IMAGE" \
+  -c "$ROS_SETUP && exec ros2 launch rml63_sim sim_drivers_only.launch.py" >/dev/null || exit 1
 sleep 20
-dev "python3 ~/user_ws/src/rml63_sim/test/coke_tracker.py home" || { dev "~/user_ws/tools/stop_sim.sh"; exit 1; }
+sim "python3 \$UWS/src/rml63_sim/test/coke_tracker.py home" || exit 1
 
 if [ -n "$KILL_AT" ]; then
-  ( sleep "$KILL_AT"; dev "~/user_ws/tools/stop_sim.sh" ) &
+  ( sleep "$KILL_AT"; stop_sim ) &
 fi
-docker run --rm --network host -e MOVEIT_LICENSE_KEY="$LICENSE" -e ROS_DOMAIN_ID="$DOMAIN" \
-  -e RMW_IMPLEMENTATION="${RMW:-rmw_fastrtps_cpp}" \
-  -v /home/kiswatz/src/qrb_moveit_pro_ws/docker/cyclonedds_loopback.xml:/cyclonedds.xml:ro \
-  -e CYCLONEDDS_URI=file:///cyclonedds.xml qrb-core-only:10.2.0 \
+docker run --rm --network host -e MOVEIT_LICENSE_KEY="$MOVEIT_LICENSE_KEY" -e ROS_DOMAIN_ID="${SIDE_ROS_DOMAIN_ID:-77}" \
+  -e RMW_IMPLEMENTATION=rmw_cyclonedds_cpp \
+  -v "$WS/docker/cyclonedds_loopback.xml:/cyclonedds.xml:ro" -e CYCLONEDDS_URI=file:///cyclonedds.xml "$CORE_IMAGE" \
   bash -c '. /opt/ros/jazzy/setup.sh && . /ws/install/setup.sh && \
     (ros2 launch qrb_pick_place_core pick_place_core.launch.py > /tmp/node.log 2>&1; echo $? > /tmp/rc) & \
     sleep 8; echo "--- nodes during run:"; ros2 node list; wait; \
@@ -32,8 +37,7 @@ docker run --rm --network host -e MOVEIT_LICENSE_KEY="$LICENSE" -e ROS_DOMAIN_ID
 NODE_RC=$?
 wait
 if [ -z "$KILL_AT" ]; then
-  dev "python3 ~/user_ws/src/rml63_sim/test/coke_tracker.py moved" || NODE_RC=1
-  dev "~/user_ws/tools/stop_sim.sh"
+  sim "python3 \$UWS/src/rml63_sim/test/coke_tracker.py moved" || NODE_RC=1
 fi
 echo "node exit code: $NODE_RC"
 exit $NODE_RC

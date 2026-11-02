@@ -1,16 +1,11 @@
 #!/usr/bin/env bash
-# Layer-2 gate for qrb_remote_assistant_sim: the simulator, controllers, and Qualcomm's remote assistant pipeline
-# (mapping, map save, relocalization, Nav2), no MoveIt Pro Runtime. Runs in a throwaway container from the workspace's
-# Runtime image and prints each stage from the launch log as it happens. Usage: run_remote_assistant_drivers_only.sh
+# Checks qrb_remote_assistant_sim with the Simulator, controllers, and Qualcomm's remote assistant pipeline (mapping,
+# map save, relocalization, Nav2), no MoveIt Pro Runtime, and prints each stage from the launch log as it happens.
+# Runs in a throwaway container from the workspace's user image; see tools/drivers_only_env.sh for the license,
+# image, and ROS domain it uses. Usage: run_remote_assistant_drivers_only.sh
 set -u
-WS=$(cd "$(dirname "$0")/.." && pwd)
-IMAGE=${IMAGE:-moveit-pro-runtime:10.2.0-jazzy-qrb_moveit_pro_ws}
-LICENSE=$(grep ^MOVEIT_LICENSE_KEY "$HOME/src/moveit_pro/.env" | cut -d= -f2)
-UWS=/home/$(id -un)/user_ws
-docker run --rm --network host -u "$(id -u):$(id -g)" -e HOME=/tmp -e MOVEIT_LICENSE_KEY="$LICENSE" \
-  -e ROS_DOMAIN_ID=77 -e RMW_IMPLEMENTATION=rmw_cyclonedds_cpp -e MUJOCO_GL=egl \
-  -v "$WS/docker/cyclonedds_loopback.xml:/cyclonedds.xml:ro" -e CYCLONEDDS_URI=file:///cyclonedds.xml \
-  -v "$WS:$UWS" -e UWS="$UWS" -e LAUNCH_ARGS="${LAUNCH_ARGS:-}" -e TIMEOUT_S="${TIMEOUT_S:-900}" \
+source "$(dirname "$0")/drivers_only_env.sh"
+docker run "${DRIVERS_ONLY_ARGS[@]}" -e LAUNCH_ARGS="${LAUNCH_ARGS:-}" -e TIMEOUT_S="${TIMEOUT_S:-900}" \
   -e TASK_WAIT_S="${TASK_WAIT_S:-200}" --entrypoint bash "$IMAGE" -c '
     source /opt/ros/jazzy/setup.bash; source /opt/overlay_ws/install/setup.bash; source $UWS/install/setup.bash
     rm -f /var/tmp/cartographer_ros/map.pbstream
