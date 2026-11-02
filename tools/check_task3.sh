@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Task 3 gate, run inside the dev container: offline grasp gate, then the live drivers-only sim with no move_group.
+# Checks the rml63_sim scene and controllers, run inside the dev container: the offline grasp check in Python MuJoCo,
+# then Qualcomm's joint targets driven straight to the controllers in the live drivers-only sim (no move_group), with
+# the can tracked until it lands on the box.
 source /etc/skel/.moveit-pro-bashrc
 cd ~/user_ws && colcon build --packages-select rml63_sim >/dev/null && source install/setup.bash
 ~/user_ws/tools/stop_sim.sh

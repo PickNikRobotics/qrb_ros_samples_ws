@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Task 5 end-to-end: drivers-only sim in the dev container, Core node in the Core-only container, same ROS domain.
+# End-to-end check of the ported pick-and-place node on MoveIt Pro Core alone: the drivers-only sim in the dev
+# container, the node in the Core-only container (docker/core-only.Dockerfile), on the same ROS domain.
 # Usage: tools/run_core_e2e.sh [--kill-sim-at <seconds>]
 # Exit: 0 only if the Core node exited cleanly (ros2 launch itself always exits 0) and, without --kill-sim-at,
 # coke1 ends on the box.
