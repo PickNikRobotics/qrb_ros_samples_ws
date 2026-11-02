@@ -2,7 +2,7 @@
 
 Usage: python3 -I postprocess_rml63_mjcf.py <robot_description.xml> <out rml63.xml>
 
-Places the arm at Qualcomm's Gazebo spawn pose, points meshes at assets/,
+Places the arm at Qualcomm's Gazebo spawn pose, points the robot's meshes at the URDF's own copies in meshes/,
 splits arm and gripper actuator gains, and adds a fingertip site for tests.
 """
 
@@ -26,6 +26,9 @@ def main(src, dst):
     root.set("model", "rml63")
     compiler = root.find("compiler")
     compiler.set("meshdir", "assets")
+    # The scene's other assets live in assets/; the robot's STLs are the URDF's, in meshes/, so they exist once.
+    for mesh in root.iter("mesh"):
+        mesh.set("file", "../meshes/" + mesh.get("file").split("/")[-1])
     compiler.set("autolimits", "true")
 
     actuators = root.find("actuator")

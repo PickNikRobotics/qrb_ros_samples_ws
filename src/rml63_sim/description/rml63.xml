@@ -2,19 +2,19 @@
   <compiler angle="radian" meshdir="assets" autolimits="true" />
   <option integrator="implicitfast" />
   <asset>
-    <mesh name="base_link" file="base_link.STL" />
-    <mesh name="link1" file="link1.STL" />
-    <mesh name="link2" file="link2.STL" />
-    <mesh name="link3" file="link3.STL" />
-    <mesh name="link4" file="link4.STL" />
-    <mesh name="link5" file="link5.STL" />
-    <mesh name="link6" file="link6.STL" />
-    <mesh name="link7" file="link7.STL" />
-    <mesh name="Link00" file="Link00.STL" />
-    <mesh name="Link01" file="Link01.STL" />
-    <mesh name="Link11" file="Link11.STL" />
-    <mesh name="Link02" file="Link02.STL" />
-    <mesh name="Link22" file="Link22.STL" />
+    <mesh name="base_link" file="../meshes/base_link.STL" />
+    <mesh name="link1" file="../meshes/link1.STL" />
+    <mesh name="link2" file="../meshes/link2.STL" />
+    <mesh name="link3" file="../meshes/link3.STL" />
+    <mesh name="link4" file="../meshes/link4.STL" />
+    <mesh name="link5" file="../meshes/link5.STL" />
+    <mesh name="link6" file="../meshes/link6.STL" />
+    <mesh name="link7" file="../meshes/link7.STL" />
+    <mesh name="Link00" file="../meshes/Link00.STL" />
+    <mesh name="Link01" file="../meshes/Link01.STL" />
+    <mesh name="Link11" file="../meshes/Link11.STL" />
+    <mesh name="Link02" file="../meshes/Link02.STL" />
+    <mesh name="Link22" file="../meshes/Link22.STL" />
   </asset>
   <actuator>
     <position joint="joint1" name="joint1" kp="2000" forcelimited="false" dampratio="1" ctrllimited="false" />
