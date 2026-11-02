@@ -52,7 +52,7 @@ The guide's Troubleshooting section starts with a symptom index: each error mess
 - **Fixing the original's demo.** Keep its steps and values; document defects in the guide's known-issues section.
 - **Editing the original's parameter files.** Copy SLAM, Nav2, and controller parameter files unchanged and make each needed change in the launch file (a wrapper or a launch-time rewrite), so the port can be diffed against the original and switched back to a vendor fork.
 - **Machine-specific paths in the guide.** Cite paths relative to a named repository root; commands take placeholders for checkout locations.
-- **Version numbers in the guide.** Write "the current release" and link the release notes; the guide outlives any one version.
+- **Pinning the reader to a version.** The guide outlives any one release, so never write "use release X" or describe "the current release". When a step needs a feature, state its minimum ("requires MoveIt Pro 10.2 or newer"), and only a minimum you verified.
 - **Editing the original's nodes.** When they should run on the vendor's hardware later, vendor them unchanged and put shims, relays, and wrappers at their interfaces (guide, Stage 5, Running the original's nodes unchanged); record every change around them in `VENDORED.md`.
 - **Reimplementing the original's success check.** If the original has a node that decides "done" (a task manager waiting for a detection), run it as the end-to-end check.
 - **Vendoring code with no license.** Keep it local and say so; do not push it until the owner confirms terms.

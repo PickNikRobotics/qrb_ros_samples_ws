@@ -17,7 +17,7 @@ The packages' own READMEs cover each port's details, including how to switch to 
 
 ## Running a sample
 
-Requires the [MoveIt Pro](https://docs.picknik.ai/) CLI and a license.
+Requires the [MoveIt Pro](https://docs.picknik.ai/) CLI, version 10.2 or newer, and a license.
 
 ```bash
 moveit_pro configure -w <path to this repository> -c rml63_sim   # or qrb_amr_sim, qrb_amr_nav_sim, qrb_remote_assistant_sim
