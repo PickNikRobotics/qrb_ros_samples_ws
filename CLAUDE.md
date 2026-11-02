@@ -10,7 +10,7 @@ Appendix A (`docs/migration_guide.md`).
 
 This repository is public.
 
-- Anything from the private `qc-robotics` repository, or generated from it.
+- Anything from a private repository, or generated from one.
 - Machine-specific code: home directories, a user name, paths into a local `moveit_pro` source checkout
   (its `.env`, its dev containers), or image tags built from one machine's folder names. Take settings from
   the environment or the MoveIt Pro CLI's own configuration.
@@ -18,7 +18,7 @@ This repository is public.
 - Text that pins the reader to one MoveIt Pro release or describes "the current release". A step that needs
   a feature may state its verified minimum ("requires MoveIt Pro 10.2 or newer").
 
-Before committing, grep the staged files for `/home/`, the user name, `src/moveit_pro`, and `qc-robotics`.
+Before committing, grep the staged files for `/home/`, the user name, and `src/moveit_pro`.
 
 ## Generated files
 
@@ -29,7 +29,8 @@ Regenerate these with their generator; never edit them by hand.
 | `src/rml63_sim/description/rml63.xml` | `tools/postprocess_rml63_mjcf.py` from `description/mjcf/robot_description.xml` |
 | `src/qrb_amr_sim/description/qrb_robot_base.xml`, `src/qrb_amr_nav_sim/description/qrb_robot_base_mini.xml` | `tools/postprocess_qrb_amr_mjcf.py`, then `tools/add_rangefinder_lidar.py` for the mini's lidar |
 | `src/qrb_remote_assistant_sim/description/qrb_robot_base_mini.xml` | the mini MJCF above, through `tools/add_base_camera.py` |
-| `src/*/description/mjcf/robot_description.urdf`, `src/qrb_pick_place_core/config/rml63.urdf`, `src/qrb_pick_place_core/test/fixtures/rml63.urdf` | `xacro` from the package's `.urdf.xacro`; re-render when the xacro changes |
+| `src/*/description/mjcf/robot_description.urdf` | The converter's input: `xacro` of the package's `.urdf.xacro`, plus the `<mujoco>` block (guide Stage 3) |
+| `src/qrb_pick_place_core/config/rml63.urdf`, `src/qrb_pick_place_core/test/fixtures/rml63.urdf` | `xacro` of `src/rml63_sim/description/rml63.urdf.xacro` |
 | `src/qrb_amr_nav_sim/description/ionic.xml`, `src/qrb_remote_assistant_sim/description/office_walls.xml` | `tools/gen_sdf_collision_mjcf.py` |
 | `src/qrb_remote_assistant_sim/description/office_furniture.xml` | `tools/gen_sdf_includes_mjcf.py` |
 | `src/rml63_sim/objectives/qrb_load_scene.xml`, `src/qrb_amr_sim/objectives/qrb_amr_load_scene.xml` | `tools/gen_scene_objective.py`, from the compiled `scene.xml`; regenerate after changing the scene |
@@ -60,7 +61,7 @@ list that change there too.
   the guide cites still resolves.
 - When a port changes, update the guide's worked-example notes and its Appendix A entry for that sample.
 
-## Writing conventions for `README.md`, `docs/`, and package READMEs
+## Writing conventions for `README.md`, `docs/`, and package READMEs (not vendored packages)
 
 - One line per paragraph and per list item; GitHub renders them, and hard wraps show up as line breaks.
 - Follow the MoveIt Pro tutorials' style (https://docs.picknik.ai/tutorials/quick_start_intro/): "we"
@@ -78,10 +79,9 @@ GPU settings that ad hoc `docker run` commands get wrong.
 ```bash
 moveit_pro configure -w <path to this repository> -c <package>
 moveit_pro build user_workspace      # moveit_pro build user_image after changing a package.xml dependency
-moveit_pro test -c <package>         # the colcon tests (qrb_pick_place_core, qrb_remote_assistant_sim, rml63_sim)
+moveit_pro test -c <package>         # the colcon tests of every package that registers them
 ```
 
-The offline MuJoCo checks run from `moveit_pro shell`, with no Runtime: `src/rml63_sim/test/grasp_check.py`,
-`src/qrb_amr_sim/test/drive_check.py`, and the `offline_check.py` in `qrb_amr_nav_sim` and
-`qrb_remote_assistant_sim`. Each one's docstring gives its usage. For a change to a sample's behavior, also
-run that sample's Objective in the Desktop App, as Appendix A of the guide describes.
+The offline MuJoCo checks (the `test/` scripts that import `mujoco` rather than `rclpy`) run from
+`moveit_pro shell`, with no Runtime; each one's docstring gives its usage. For a change to a sample's
+behavior, also run that sample's Objective in the Desktop App, as Appendix A of the guide describes.

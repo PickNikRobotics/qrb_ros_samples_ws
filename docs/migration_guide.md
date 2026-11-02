@@ -293,7 +293,7 @@ The 3D view shows the URDF and the planning scene, not the MuJoCo scene. A port 
 
 ### Teleoperation
 
-A keyboard or joystick node that publishes velocity commands has no Behavior Tree counterpart to write: the Desktop App's teleoperation does its job. An arm teleoperates through MoveIt Pro's jog controllers, configured as `lab_sim` does (`pose_jog.yaml`, `joint_jog.yaml`, and the controllers they name). A differential-drive base today needs one custom Behavior, `TeleoperateBase`, from `lunar_sim_behaviors` in `moveit_pro_example_ws`:
+A keyboard or joystick node that publishes velocity commands has no Behavior Tree counterpart to write: the Desktop App's teleoperation does its job. An arm teleoperates through MoveIt Pro's jog controllers, configured as `lab_sim` does (`pose_jog.yaml`, `joint_jog.yaml`, and the controllers they name). A differential-drive base needs one custom Behavior, `TeleoperateBase`, from `lunar_sim_behaviors` in `moveit_pro_example_ws`:
 
 1. Vendor `lunar_sim_behaviors` into the workspace unchanged (BSD-3-Clause; record the source commit) and load `lunar_sim_behaviors::LunarSimBehaviorsLoader` in `config.yaml`.
 2. Override `Request Teleoperation` with `lunar_sim`'s version, which runs `TeleoperateBase` in Pose mode. Set its velocity limits to the original node's speeds.

@@ -33,4 +33,4 @@ The guide's [worked examples appendix](docs/migration_guide.md#appendix-a-the-wo
 
 ## Licenses
 
-Vendored packages keep their own licenses; see each one's `VENDORED.md`. The guide's [asset licenses](docs/migration_guide.md#asset-licenses) table lists the meshes and models the scenes use.
+Vendored packages keep their own licenses; see each one's `VENDORED.md`. The guide's [asset licenses](docs/migration_guide.md#appendix-c-asset-licenses) table lists the meshes and models the scenes use.

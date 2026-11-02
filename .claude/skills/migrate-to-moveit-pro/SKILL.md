@@ -49,7 +49,7 @@ The guide's Troubleshooting section starts with a symptom index: each error mess
 - **Assuming the platform supports the variant.** Check the support table for the exact drive type or sensor; a missing reference configuration is the biggest sizing risk and must be stated up front.
 - **Skipping offline validation.** Testing grasp reach or drive kinematics in Python MuJoCo takes seconds; finding the same problem through the Runtime takes much longer.
 - **Declaring done from the CLI.** The user must see it work in the Desktop App with the scene visible.
-- **Fixing the original's demo.** Keep its steps and values; document defects in the guide's known-issues section.
+- **Fixing the original's demo.** Keep its steps and values; document defects as known issues (guide, Stage 6; Appendix A shows the form).
 - **Editing the original's parameter files.** Copy SLAM, Nav2, and controller parameter files unchanged and make each needed change in the launch file (a wrapper or a launch-time rewrite), so the port can be diffed against the original and switched back to a vendor fork.
 - **Machine-specific paths in the guide.** Cite paths relative to a named repository root; commands take placeholders for checkout locations.
 - **Pinning the reader to a version.** The guide outlives any one release, so never write "use release X" or describe "the current release". When a step needs a feature, state its minimum ("requires MoveIt Pro 10.2 or newer"), and only a minimum you verified.
