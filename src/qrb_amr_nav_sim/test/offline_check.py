@@ -1,4 +1,4 @@
-"""Offline layer-1 check of the qrb_amr_nav_sim scene in Python MuJoCo, no ROS.
+"""Offline check of the qrb_amr_nav_sim scene in Python MuJoCo, no ROS.
 
 Settles the base, drives it at Qualcomm's 0.5 m/s and 1.0 rad/s through the wheel actuators, reads the 1800-beam
 lidar, and times the simulation. Usage: python3 test/offline_check.py description/scene.xml

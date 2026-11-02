@@ -2,7 +2,6 @@ build/
 install/
 log/
 .superpowers/
-docker/core/
 __pycache__/
 core.[0-9]*
 .env

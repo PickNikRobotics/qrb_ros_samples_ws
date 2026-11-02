@@ -1,9 +1,9 @@
-"""Offline MuJoCo grasp gate for Qualcomm's pick-and-place joint targets.
+"""Offline MuJoCo grasp check for Qualcomm's pick-and-place joint targets.
 
 Drives the position actuators through the sample's steps (ready, open, pick, close, raise[, place, open, re-raise])
 and checks the can. Joint values are copied verbatim from qrb_ros_arm_pick_place.cpp and rml_63.srdf.
 
-Usage: python3 grasp_gate.py <scene.xml> [--full]
+Usage: python3 grasp_check.py <scene.xml> [--full]
   default: pick -> close -> raise; pass if coke1 rises >= 0.05 m.
   --full:  complete sequence; pass if coke1 ends upright on top of the cardboard box, within 0.05 m (xy) of the release point.
 """

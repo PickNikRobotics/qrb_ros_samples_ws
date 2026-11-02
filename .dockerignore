@@ -2,5 +2,3 @@ build
 install
 log
 .superpowers
-docker/core/*.zip
-src/rml63_sim

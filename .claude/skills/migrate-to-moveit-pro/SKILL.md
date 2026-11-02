@@ -19,7 +19,7 @@ A migration is done when the application's original behavior runs on MoveIt Pro,
 4. **Agree on the plan with the user** before building: present it in the shape below, settle open decisions, then write the task plan. Order the work so the simulation scene comes first: everything else is validated against it.
 5. **Build in this order**, validating each layer alone before the next:
    - MuJoCo scene, checked offline in Python MuJoCo (guide §3) — including driving the original targets through the actuators.
-   - Robot configuration package with controllers only, no Runtime (guide §4) — drive the original commands straight to the controllers.
+   - Robot configuration package (guide §4); before writing Objectives, drive the original commands straight to the controllers from a Runtime shell (`moveit_pro shell`).
    - The ported node or Behaviors (guide §2, §6), or for a mobile base the drive controller and teleoperation (guide §7). Where the original's own nodes should run unchanged, the shims at their interfaces (guide §8).
    - The Objective (guide §5), then make the scene visible in the Desktop App (guide §3, "Making the scene visible"; for a mobile base also the 3D Visualizer's reference frame, guide §7).
 6. **Hand the user a running Objective or teleoperation session in the Desktop App** and ask them to watch it, or drive it. They will see problems a CLI check cannot (missing scene, robot not drawn in the 3D view, wrong geometry, unclear controls).
@@ -42,10 +42,9 @@ A plan you present for a sample is these parts, in order:
 | Symptom | Section |
 |---|---|
 | `No acceleration limit was defined for joint` | §2 Acceleration limits |
-| State monitor times out; `/joint_states` never arrives | §2 own executor; §9 DDS / bashrc |
+| State monitor times out; `/joint_states` never arrives | §2 own executor; §9 `docker exec` bashrc |
 | Node dies with SIGABRT on a startup error | §2 `std::jthread` |
 | `Cannot locate rosdep definition for [pro_rrt]` | §2 Building |
-| `MoveIt Pro License is invalid` in a container | §2 Core alone |
 | MuJoCo bodies "do not sit where the URDF places" links | §3 robot world pose |
 | `Non-PNG texture` | §3 Scene |
 | Desktop App shows only the robot | §3 Making the scene visible |
@@ -59,8 +58,6 @@ A plan you present for a sample is these parts, in order:
 | `free joint can only be used on top level` | §3 mobile base post-processing |
 | `number of faces should be between 1 and 200000` | §3 decimate meshes |
 | `Rejecting /do_teleoperate goal: no UI tab is subscribed` | §7 Teleoperation |
-| `Package '…' not found` in a side container | §9 |
-| `port numbers … are out of range` (Cyclone DDS) | §9 |
 | Base shakes or flickers in the 3D Visualizer | §7 Frames (two TF parents) |
 | Every lidar beam reads a few centimeters | §3 Planar lidar |
 | Simulation runs slower than real time with a lidar | §3 Planar lidar |

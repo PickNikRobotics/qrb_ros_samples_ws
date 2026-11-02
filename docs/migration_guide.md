@@ -116,13 +116,6 @@ When the gripper uses mimic joints ([section 6](#gripper-couple-the-fingers)), k
 - `rosdep` has no keys for MoveIt Pro packages. `rosdep install` fails with "Cannot locate rosdep definition for [pro_rrt]" unless they are listed in `--skip-keys`.
 - Qualcomm's sample has a QIRP SDK cross-compile path that hard-codes sysroot include directories for each MoveIt 2 package. It was not ported or tested; a QIRP build needs the MoveIt Pro packages in the Yocto sysroot first.
 
-### MoveIt Pro Core alone, without the Runtime
-
-The planner part of the port, the `motion_planner` library, builds and passes its tests against only the standalone **MoveIt Pro Core** packages (`docker/core-only.Dockerfile` installs the Core archive on a clean `ros:jazzy` image and builds with `-DQRB_CORE_ONLY=ON`, which leaves out the node). Two things limit a Core-only deployment:
-
-- The JTAC's action type lives in `moveit_pro_controllers_msgs`, which the Core archive does not ship. A Core-only application must drive a standard `JointTrajectoryController` with `control_msgs/FollowJointTrajectory` instead.
-- Core's license check reads a hardware fingerprint. In a container it needs the host's network interfaces (`--network host`, or the host's `/sys` mounted with `MOVEIT_HOST_SYSFS` set); with bridge networking it fails with "MoveIt Pro License is invalid".
-
 ---
 
 ## 3. Migrating the simulation environment to MuJoCo
@@ -133,7 +126,7 @@ Gazebo worlds do not run in MoveIt Pro; the MoveIt Pro Simulator uses the MuJoCo
 
 1. Render the robot xacro to URDF, remove any Gazebo-specific `ros2_control` block, and add `<mujoco><option integrator="implicitfast"/><compiler fusestatic="false" discardvisual="false"/></mujoco>` under `<robot>`.
 2. In a directory with the URDF: `ros2 run moveit_studio_utils_py flatten_meshes robot_description.urdf`, then `ros2 run moveit_studio_utils_py urdf_to_mjcf robot_description.urdf`. The converter adds position actuators, gravity compensation, and geom names.
-3. Post-process the generated MJCF with a script rather than by hand, so it can be regenerated: `tools/postprocess_rml63_mjcf.py` points meshes at `assets/`, places the base, sets actuator gains, adds a `tcp` site, and couples the gripper.
+3. Post-process the generated MJCF with a script rather than by hand, so it can be regenerated: `tools/postprocess_rml63_mjcf.py` points the robot's meshes at the URDF's own copies (so each STL exists once), places the base, sets actuator gains, adds a `tcp` site, and couples the gripper.
 4. **A mobile base needs more post-processing.** `urdf_to_mjcf` writes arm-shaped output: gravity compensation on every body and a position actuator on every joint, passive casters included. For a base, give the root body a `<freejoint>`, remove `gravcomp`, put velocity actuators on the drive wheels only (keep `armature / kv` below the timestep), and make casters frictionless spheres on ball joints. `tools/postprocess_qrb_amr_mjcf.py` does this. The public guide's "floating reference joint" step for mobile manipulators fails when the URDF root is already the base ("free joint can only be used on top level"); add the free joint in post-processing instead.
 5. **Decimate large meshes first.** MuJoCo rejects an STL with more than 200,000 faces ("number of faces should be between 1 and 200000"). `decimate_mesh in.stl out.stl` (in the Runtime image) brought Qualcomm's 403,096-face base mesh to 4,170. Count first: the mini base's 151,674-face mesh loads as it is.
 6. **`flatten_meshes` resolves `package://` URIs**, so the package must be on the ament index. Before the new package is built, give it a throwaway prefix: create `<prefix>/share/ament_index/resource_index/packages/<package>`, symlink `<prefix>/share/<package>` to the source package, and prepend `<prefix>` to `AMENT_PREFIX_PATH`.
@@ -370,15 +363,11 @@ Qualcomm's `map_nav_setup.py` and `nav_preparation_node` start their own `ros2 l
 - **Use the matching MoveIt Pro CLI.** The robot configuration schema and `moveit_pro` flags change between major releases; check `moveit_pro run --help` for the installed CLI rather than copying flags from older instructions. Install the CLI release that matches the images you will run, and rebuild the user workspace from clean after changing it.
 - **Gazebo's spawn-time configuration lives outside the robot files.** Pose, world, and controllers loaded by separate launch files all have to be found and moved into the URDF/MJCF and `config.yaml`. Check every launch file the README tells users to run, including in the simulation repository (`qrb_ros_simulation`).
 - **`docker exec` into the Runtime container needs the bashrc.** The container's own environment leaves `CYCLONEDDS_URI` empty; only `/etc/skel/.moveit-pro-bashrc` (inside the image) sets it. A node started from a plain `docker exec` shell never discovers `/joint_states`. Run `source /etc/skel/.moveit-pro-bashrc` first.
-- **A container outside the MoveIt Pro stack must match its DDS settings.** The stack runs Cyclone DDS over loopback, unicast only. A separate container needs `rmw_cyclonedds_cpp`, the same `ROS_DOMAIN_ID`, and the same Cyclone configuration (`docker/cyclonedds_loopback.xml`, copied from `~/.ros/cyclonedds.xml` inside the Runtime container, reachable with `moveit_pro shell`).
 - **`ros2 launch` exits 0 when its node dies.** Judge a run by the node's own exit line ("process has finished cleanly" vs. "process has died"), not by the launch command's exit code.
-- **The dev containers share the host PID namespace.** `pkill -f "ros2 launch <pkg>"` also matches and kills the shell running it. Match anchored executable paths (`tools/stop_sim.sh`).
-- **Running a workspace in another container** (for example a controllers-only check without the Runtime): mount it at the path it was built at inside the Runtime container (`/home/<user>/user_ws`). colcon's setup files record their install prefix, so a different mount point fails with "Package '…' not found".
-- **Cyclone DDS rejects high domain IDs.** A `ROS_DOMAIN_ID` above roughly 232 fails with "resulting port numbers … are out of range". Use a domain under 100 for side containers.
 - **TLS-inspecting corporate networks** re-sign Docker Hub's certificate with the gateway's own CA, so image pulls and builds fail with "x509: certificate signed by unknown authority" (check the issuer with `openssl s_client -connect registry-1.docker.io:443`). Pull through a registry mirror instead: add `"registry-mirrors": ["https://mirror.gcr.io"]` to `/etc/docker/daemon.json` and restart Docker. `docker manifest inspect` ignores the mirror, so test with `docker pull`. Some tags, such as the CUDA images, can be incomplete on the mirror; `MOVEIT_TARGET= moveit_pro build user_image` (empty) builds on the CPU base image instead.
 - **`rosdep` reports "no rosdep rule" when `ROS_DISTRO` is unset**, outside a sourced ROS environment. Set `ROS_DISTRO=jazzy` before concluding a package has no rule.
 - **There is no `/clock`.** Any `use_sim_time:=true` in the original, including inside a subprocess a node launches itself, leaves that node at time 0. See [section 8](#original-orchestration-that-starts-subprocesses).
-- **Simulation speed varies between test setups.** The same office scene ran at 0.74× physics-only, about 0.48× in a drivers-only container, and 0.34× in the full Runtime with two cameras rendering. Any application that closes loops on wall-clock timers (Qualcomm's `build_map_node` checks its turns every 0.2 s of wall time) behaves differently in each. Measure the real-time factor in the setup you will demonstrate in.
+- **Simulation speed varies between test setups.** The same office scene ran at 0.74× with physics alone and 0.34× in the full Runtime with two cameras rendering. Any application that closes loops on wall-clock timers (Qualcomm's `build_map_node` checks its turns every 0.2 s of wall time) behaves differently at each speed. Measure the real-time factor in the setup you will demonstrate in.
 - **SAM3:** `moveit_pro configure --sam3-license` acts only on a clone of `moveit_pro_example_ws`. Elsewhere, vendor `moveit_pro_sam3` and record the Meta SAM License acceptance in its `VENDORED.md`. On the CPU it takes about 30 s per frame, and the Objective server held 16 GB RSS once the model was loaded.
 - **Moving to a newer release mid-port:** upgrade the CLI and images together, rebuild the user workspace from clean, and re-run each sample's checks. A newer release can make workarounds unnecessary (the `publish_object_tf` parameter, [Frames](#frames)) and can change which TF path reaches the base ([Drive controller](#drive-controller)). Mark each workaround with the release that needs it, so it can be found and removed.
 
@@ -410,7 +399,7 @@ Each port keeps the original's sequence, targets, and parameters; its job is to 
 - **The mapping route is timing-sensitive.** It depends on the Simulator's speed (see [section 9](#9-environment-and-tooling-gotchas)), so the route and saved map differ between runs in the full Runtime. In Gazebo at 1.0× real time, the same arithmetic gives about 3° of overshoot per turn.
 - **The Simulator runs below real time** in the office (0.74×) with Qualcomm's 1800-beam lidar, kept as is; Cartographer and Nav2 run on wall time.
 - **Cameras render at 2 Hz** on the CPU image (`render_publish_rate`), enough for the person check.
-- **Validated setups:** `task_manager_node`'s end-to-end run ("Navigation target reached", then the detection) passes in the drivers-only setup; SAM3 detection passes on saved frames (one person at the office goal, none at an empty wall) and runs live in the Runtime.
+- **Validated setups:** `task_manager_node`'s end-to-end run ("Navigation target reached", then the detection) passed during the port in a run with only the Simulator, controllers, and pipeline (no other Runtime nodes); SAM3 detection passes on saved frames (one person at the office goal, none at an empty wall) and runs live in the Runtime.
 
 ---
 
@@ -428,8 +417,7 @@ This repository holds one robot configuration package per ported sample; switch 
 | `src/rml63_sim/description/scene.xml`, `rml63.xml`, `warehouse.xml` | MuJoCo pick cell, robot, and warehouse |
 | `src/rml63_sim/objectives/qrb_pick_and_place.xml` | The nine-step Objective |
 | `src/rml63_sim/objectives/qrb_load_scene.xml` | Generated planning-scene furniture |
-| `src/rml63_sim/launch/sim_drivers_only.launch.py` | Simulator, controllers, and `robot_state_publisher` only, with no Runtime |
-| `tools/` | The generators and post-processing scripts cited in sections 3 and 5, and the drivers-only run scripts |
+| `tools/` | The generators and post-processing scripts cited in sections 3 and 5 |
 | `src/qrb_amr_sim/config/config.yaml` | Robot configuration package for the QRB robot base |
 | `src/qrb_amr_sim/config/control/qrb_robot_base.ros2_control.yaml` | `diff_drive_controller` replacing Gazebo's diff-drive plugin |
 | `src/qrb_amr_sim/description/scene.xml`, `qrb_robot_base.xml` | Base in the warehouse, with a scene camera |
@@ -452,7 +440,6 @@ This repository holds one robot configuration package per ported sample; switch 
 | `src/simulation_remote_assistant/`, `src/qrb_ros_slam_msgs/` | Qualcomm's nodes and `SlamCommand` messages, vendored |
 | `src/moveit_pro_sam3/` | Vendored SAM3 models package |
 | `src/lunar_sim_behaviors/` | Vendored `TeleoperateBase` (see `VENDORED.md`) |
-| `docker/core-only.Dockerfile` | MoveIt Pro Core archive on a clean `ros:jazzy` image |
 
 ### Run it
 
