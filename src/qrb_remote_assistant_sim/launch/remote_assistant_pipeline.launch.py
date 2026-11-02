@@ -15,8 +15,8 @@ Nav2). This runs the same sequence on upstream Cartographer, with changes only a
   for the drive controller, which takes TwistStamped only and is also fed by Nav2. Each Twist is sent once: both
   nodes publish every control tick.
 
-Run task_manager_node (Qualcomm's interactive prompt) yourself once "Relocalization successful" is logged, or run the
-QRB Remote Assistant Objective. qrb_amr_nav_sim's README covers switching Cartographer to Qualcomm's fork.
+Run task_manager_node (Qualcomm's interactive prompt) yourself once "Relocalization successful" is logged, with the
+QRB Detect Person Objective running. qrb_amr_nav_sim's README covers switching Cartographer to Qualcomm's fork.
 """
 
 import os
