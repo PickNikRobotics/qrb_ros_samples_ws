@@ -25,7 +25,7 @@ moveit_pro build user_workspace
 moveit_pro run
 ```
 
-The guide's [reference section](docs/migration_guide.md#11-reference-the-ported-samples) lists what to run in the Desktop App for each sample. `qrb_amr_nav_sim` and `qrb_remote_assistant_sim` need Cartographer and Nav2 in the user image: run `moveit_pro build user_image` first.
+The guide's [worked examples appendix](docs/migration_guide.md#appendix-a-the-worked-examples) lists what to run in the Desktop App for each sample. `qrb_amr_nav_sim` and `qrb_remote_assistant_sim` need Cartographer and Nav2 in the user image: run `moveit_pro build user_image` first.
 
 ## Claude Code skill
 
