@@ -12,7 +12,8 @@ controller_manager:
 # wheel_separation and wheel_radius are Qualcomm's (qrb_robot_base_mini.urdf). The separation multiplier is calibrated
 # for MuJoCo: Qualcomm's Gazebo 1.125 turns the base 32.9 deg/s for 30 commanded here, and Qualcomm's build_map_node
 # closes each 90 deg turn on this controller's odometry, so its mapping route would turn ~99 deg and drive into a wall.
-# 1.05 turns it 30.6 deg/s.
+# 1.05 turns it 30.6 deg/s, still ~2% over, which on that route's 7 m leg is enough to clip the same wall at
+# 1.0x real time. The turn rate is 0.975 x multiplier x the command, so 1.025 turns it as commanded.
 platform_velocity_controller:
   ros__parameters:
     left_wheel_names: ["wheel_left_joint"]
@@ -20,7 +21,7 @@ platform_velocity_controller:
     wheels_per_side: 1
 
     wheel_separation: 0.25
-    wheel_separation_multiplier: 1.05
+    wheel_separation_multiplier: 1.025
     wheel_radius: 0.053
     left_wheel_radius_multiplier: 1.0
     right_wheel_radius_multiplier: 1.0
