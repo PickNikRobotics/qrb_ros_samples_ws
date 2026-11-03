@@ -17,6 +17,9 @@ hardware:
     urdf_params:
       - mujoco_model: "description/scene.xml"
       - mujoco_viewer: "false"
+  additional_driver_launch_file:
+    package: "qrb_amr_sim"
+    path: "launch/simple_motion_drivers.launch.py"
 
 ros_global_params:
   use_sim_time: False
@@ -60,6 +63,8 @@ objectives:
       - "moveit_pro::behaviors::MTCCoreBehaviorsLoader"
       - "moveit_pro::behaviors::ConverterBehaviorsLoader"
       - "moveit_pro::behaviors::MujocoBehaviorsLoader"
+      # Reset MuJoCo Sim calls ClearSnapshot, a vision Behavior.
+      - "moveit_pro::behaviors::VisionBehaviorsLoader"
     lunar_sim:
       - "lunar_sim_behaviors::LunarSimBehaviorsLoader"
   objective_library_paths:
