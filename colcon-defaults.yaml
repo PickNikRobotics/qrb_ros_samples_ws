@@ -46,3 +46,6 @@ test:
     - franka_ros2
     - franka_semantic_components
     - integration_launch_testing
+    # Vendored unchanged; its setup.py has no tests_require, so colcon runs it under unittest, finds none of
+    # its pytest lint tests, and fails (see src/simulation_remote_assistant/VENDORED.md).
+    - simulation_remote_assistant

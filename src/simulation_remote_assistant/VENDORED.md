@@ -1,1 +1,3 @@
 Vendored unchanged from qualcomm-qrb-ros/qrb_ros_samples robotics/simulation_remote_assistant (BSD-3-Clause-Clear), commit 4943268. Qualcomm's build_map_node, nav_preparation_node, and task_manager_node run as they are; qrb_remote_assistant_sim supplies what their README sets up around them.
+
+Change around it: the workspace's `colcon-defaults.yaml` skips this package in `colcon test`. Its `setup.py` has no `tests_require=['pytest']`, so colcon runs its tests under unittest, which collects none of the pytest lint tests (`test_copyright.py`, `test_flake8.py`, `test_pep257.py`) and fails with exit code 5.
