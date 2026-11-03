@@ -5,3 +5,4 @@ log/
 __pycache__/
 core.[0-9]*
 .env
+MUJOCO_LOG.TXT

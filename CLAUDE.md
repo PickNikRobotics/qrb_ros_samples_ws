@@ -29,7 +29,8 @@ Regenerate these with their generator; never edit them by hand.
 | `src/rml63_sim/description/rml63.xml` | `tools/postprocess_rml63_mjcf.py` from `description/mjcf/robot_description.xml` |
 | `src/qrb_amr_sim/description/qrb_robot_base.xml`, `src/qrb_amr_nav_sim/description/qrb_robot_base_mini.xml` | `tools/postprocess_qrb_amr_mjcf.py`, then `tools/add_rangefinder_lidar.py` for the mini's lidar |
 | `src/qrb_remote_assistant_sim/description/qrb_robot_base_mini.xml` | the mini MJCF above, through `tools/add_base_camera.py` |
-| `src/*/description/mjcf/robot_description.urdf` | The converter's input: `xacro` of the package's `.urdf.xacro`, plus the `<mujoco>` block (guide Stage 3) |
+| `src/qrb_amr_sim/description/mjcf/robot_description.urdf`, `src/qrb_amr_nav_sim/description/mjcf/robot_description.urdf` | The converter's input: `xacro` of the package's `.urdf.xacro`, plus the `<mujoco>` block (guide Stage 3) |
+| `src/rml63_sim/description/mjcf/robot_description.urdf` | The converter's input, rendered before the xacro gained the spawn pose, gripper mimic joints, and `joint01`'s [0, 0.2] limit. `postprocess_rml63_mjcf.py` adds all three on the MuJoCo side, so do not re-render this file from the current xacro: it would apply them twice |
 | `src/qrb_pick_place_core/config/rml63.urdf`, `src/qrb_pick_place_core/test/fixtures/rml63.urdf` | `xacro` of `src/rml63_sim/description/rml63.urdf.xacro` |
 | `src/qrb_amr_nav_sim/description/ionic.xml`, `src/qrb_remote_assistant_sim/description/office_walls.xml` | `tools/gen_sdf_collision_mjcf.py` |
 | `src/qrb_remote_assistant_sim/description/office_furniture.xml` | `tools/gen_sdf_includes_mjcf.py` |
