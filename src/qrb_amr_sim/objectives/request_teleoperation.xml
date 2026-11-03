@@ -4,7 +4,7 @@
        None of core's arm branches apply. The Pose tab's mode (CARTESIAN_JOG, teleop_mode 2) runs TeleoperateBase
        (vendored lunar_sim_behaviors), which forwards the jog pad, gamepad, and Quest VelocityForceCommand stream on
        /pose_jog/base to a TwistStamped on /cmd_vel for platform_velocity_controller. Limits are Qualcomm's
-       simple_motion speeds. This replaces Qualcomm's keyboard node; core support is coming in a base-jog mode. -->
+       simple_motion speeds. This replaces Qualcomm's keyboard node; a core base-jog mode, where the release provides one, replaces this override. -->
   <BehaviorTree
     ID="Request Teleoperation"
     _description="Drives the QRB robot base over /cmd_vel from the Pose tab's jog pad, gamepad, or Quest headset input. The Joint, IMarker, and Waypoints tabs do nothing on this armless base."
