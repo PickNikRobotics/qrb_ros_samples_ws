@@ -219,6 +219,7 @@ From a MoveIt 2 application, the URDF and SRDF (planning groups, named group sta
 - `hardware.simulated`, `robot_driver_persist_launch_file`, and `simulated_robot_driver_persist_launch_file` were removed (their values move to `additional_driver_launch_file`), and `runtime_launch_file` is required. Older reference configs can still carry them; the user workspace migration guide for the release that removed them lists the replacements.
 - `moveit_params.pose_jog` and `joint_jog` are required ("Field required"), even for a robot with no jog controllers.
 - An empty list anywhere in the resolved parameters (`planning_groups: []`, `controllers_inactive_at_startup: []`) crashes the launch with "Expected 'value' to be one of […] but got '()' of type tuple". Omit optional list keys rather than setting them to `[]`, and give the jog files a real group and controller.
+- The core `Reset MuJoCo Sim` Objective calls `ClearSnapshot`, a vision Behavior. Load `moveit_pro::behaviors::VisionBehaviorsLoader` next to `MujocoBehaviorsLoader`, or the Objective fails with "Failed to create Behavior Tree for Objective `Reset MuJoCo Sim`", even in a scene without cameras.
 
 ### Arm: JointTrajectoryController → JointTrajectoryAdmittanceController (JTAC)
 
@@ -265,10 +266,10 @@ A differential-drive base needs no planner and no MoveIt 2 code; it needs a driv
 - Carry over the wheel names, radius, separation, and any separation multiplier from the Gazebo xacro, and expect to recalibrate them. Measure against simulation ground truth, not `/odom`: odometry is computed from the same parameters, so it always agrees with the command. From MoveIt Pro 10.2, the Simulator publishes `<base_link>_ground_truth` under `mj_world`; use that frame, because `mj_world → base_footprint` resolves through the controller's odometry. Recalibrating stops being optional once the application closes a loop on odometry.
 - Exactly one node owns `odom` → base frame. With wheel odometry alone, that is the controller (`enable_odom_tf: true`). With a SLAM node that provides the odometry frame (Cartographer's `provide_odom_frame = true`), set `enable_odom_tf: false`.
 - Name it as `lunar_sim` does (`platform_velocity_controller`) and map its topics to plain `/cmd_vel` and `/odom` with `controller_shared_topics` in `config.yaml`.
-- **Commands must be `TwistStamped`, and they expire.** The ROS 2 Jazzy controller accepts only `geometry_msgs/TwistStamped` and drops any command older than `cmd_vel_timeout` (0.5 s), so a `Twist` publisher does nothing and a single command stops the base after half a second. Gazebo's plugin took `Twist` and kept driving on the last command. To keep an original `Twist` node working unchanged, relay it through a node that stamps each message and, for a press-once teleop node, re-sends the last one at a fixed rate.
+- **Commands must be `TwistStamped`, and they expire.** The ROS 2 Jazzy controller accepts only `geometry_msgs/TwistStamped` and drops any command older than `cmd_vel_timeout` (0.5 s), so a `Twist` publisher does nothing and a single command stops the base after half a second. Gazebo's plugin took `Twist` and kept driving on the last command. To keep an original `Twist` node working unchanged, relay it through a node that stamps each message and, for a press-once teleop node, re-sends the last one at a fixed rate. Start the relay from `hardware.additional_driver_launch_file` in `config.yaml`, so it runs whenever the Simulator does.
 
 > [!NOTE]
-> **Worked example:** `src/qrb_amr_sim/config/control/qrb_robot_base.ros2_control.yaml` replaces the plugin, and `src/qrb_amr_sim/scripts/twist_stamper.py` lets Qualcomm's unmodified `Twist` node drive. Qualcomm's 1.1525 separation multiplier turns about 9% faster than commanded in MuJoCo, where 1.05 matches. In the remote assistant, whose scripted route turns on `/odom`, Qualcomm's 1.125 made every 90° turn about 99° and drove the route into a wall; that port uses 1.05.
+> **Worked example:** `src/qrb_amr_sim/config/control/qrb_robot_base.ros2_control.yaml` replaces the plugin, and `src/qrb_amr_sim/scripts/twist_stamper.py`, started by `launch/simple_motion_drivers.launch.py`, lets Qualcomm's unmodified `Twist` node drive. Qualcomm's 1.1525 separation multiplier turns about 9% faster than commanded in MuJoCo, where 1.05 matches. In the remote assistant, whose scripted route turns on `/odom`, Qualcomm's 1.125 made every 90° turn about 99° and drove the route into a wall. That base's turn rate is 0.975 × the multiplier × the command, so the port uses 1.025, which turns as commanded; 1.05 was still about 2% over, enough to clip the same wall at full speed.
 
 **Frames.**
 
@@ -435,7 +436,7 @@ Drive the base around with teleoperation. You should see the map grow in the Des
 
 Sometimes the right port runs the original's nodes byte-identical, so the same nodes run against the simulation now and against the vendor's own stack on its hardware later. Everything the port needs then goes at the nodes' interfaces.
 
-- **Vendor the packages and record where they came from.** Copy them unchanged and write a `VENDORED.md` with the source repository, commit, and license, and every change made *around* them (`COLCON_IGNORE`, `colcon.pkg`, skipped `rosdep` keys); none go inside their files. A message package published only as a binary for one architecture builds from its interface files with a new `CMakeLists.txt`.
+- **Vendor the packages and record where they came from.** Copy them unchanged and write a `VENDORED.md` with the source repository, commit, and license, and every change made *around* them (`COLCON_IGNORE`, `colcon.pkg`, skipped `rosdep` keys); none go inside their files. A message package published only as a binary for one architecture builds from its interface files with a new `CMakeLists.txt`. If a vendored `ament_python` package's `setup.py` lacks `tests_require=['pytest']`, `colcon test` runs it under unittest, finds no tests ("NO TESTS RAN"), and fails with exit code 5; skip it under `test: packages-skip` in the workspace's `colcon-defaults.yaml`, then run `moveit_pro build user_image`, because the image copies that file.
 - **Shim a vendor-only service.** When the nodes call a service only the vendor's stack serves, write a node that serves the same interface over the upstream equivalents, and give it a timeout, so a caller that polls it cannot spin forever. On the vendor's hardware, a launch argument switches the shim off.
 - **Stand in for a model that needs the vendor's NPU.** Keep the model's output topic as the seam, and publish the same message from a MoveIt Pro Objective (SAM3 segmentation, for example) through a small bridge node. Check the stand-in's latency against the original's timeouts.
 - **Re-run a launcher script's sequence** from the robot configuration package's driver launch, in the same order and with the same commands to the original nodes, when the original's launcher cannot run as it is (it hard-codes `use_sim_time:=true`, or a launch file only the vendor ships).
@@ -504,6 +505,7 @@ Congratulations, your application now runs on MoveIt Pro! To see these stages ap
 | Base visible in the scene camera but not the 3D Visualizer | [Mobile base](#mobile-base) (frames) |
 | Base shakes or flickers in the 3D Visualizer | [Mobile base](#mobile-base) (two TF parents) |
 | Desktop App shows only the robot | [Make the scene visible](#make-the-scene-visible-in-the-desktop-app) |
+| `Failed to create Behavior Tree for Objective` `Reset MuJoCo Sim` | [The configuration package](#the-configuration-package) |
 | `CollisionObject … already exists` | [Make the scene visible](#make-the-scene-visible-in-the-desktop-app) |
 | `Can't find a tree with name` | [Make the scene visible](#make-the-scene-visible-in-the-desktop-app) (rebuild) |
 | `Rejecting /do_teleoperate goal: no UI tab is subscribed` | [Teleoperation](#teleoperation) |
@@ -515,6 +517,7 @@ Congratulations, your application now runs on MoveIt Pro! To see these stages ap
 | `Key '…' was used the wrong number of times` (Cartographer) | [Navigation](#navigation-slam-and-nav2) |
 | Two message types on `/cmd_vel`, or the base moves at half speed | [Navigation](#navigation-slam-and-nav2) |
 | An original node sits at time 0 or waits forever | [Running the original's nodes unchanged](#running-the-originals-nodes-unchanged); [no `/clock`](#environment-and-tooling) |
+| A vendored package fails `colcon test` with "NO TESTS RAN" (exit code 5) | [Running the original's nodes unchanged](#running-the-originals-nodes-unchanged) |
 | `x509: certificate signed by unknown authority` pulling images | [Environment and tooling](#environment-and-tooling) |
 | `no rosdep rule` for a ROS package | [Environment and tooling](#environment-and-tooling) |
 
@@ -572,7 +575,7 @@ A keyboard node drives the QRB robot base in a warehouse.
 | `src/qrb_amr_sim/description/scene.xml`, `qrb_robot_base.xml` | Base in the warehouse, with a scene camera |
 | `src/qrb_amr_sim/objectives/request_teleoperation.xml` | Pose-tab teleoperation for the base |
 | `src/qrb_amr_sim/objectives/qrb_amr_load_scene.xml` | Generated warehouse planning-scene objects |
-| `src/qrb_amr_sim/scripts/twist_stamper.py` | Lets Qualcomm's unmodified `Twist` node drive the controller |
+| `src/qrb_amr_sim/scripts/twist_stamper.py`, `launch/simple_motion_drivers.launch.py` | Lets Qualcomm's unmodified `Twist` node drive the controller; started with the Simulator |
 | `src/lunar_sim_behaviors/` | Vendored `TeleoperateBase` |
 
 **Known issues:**
@@ -620,12 +623,12 @@ The base maps Qualcomm's office world on a scripted route, saves and reloads the
 
 **Known issues:**
 
-- **Changed: `wheel_separation_multiplier` 1.05**, not Qualcomm's 1.125. `build_map_node` closes each turn on odometry, and with 1.125 each 90° turn is about 99° true, which drives the route into a station wall.
+- **Changed: `wheel_separation_multiplier` 1.025**, not Qualcomm's 1.125. `build_map_node` closes each turn on odometry, and with 1.125 each 90° turn is about 99° true, which drives the route into a station wall. The base's turn rate is 0.975 × the multiplier × the command, so 1.025 turns as commanded. An earlier 1.05 cleared the wall at 0.74× real time but clipped it at about 1.0×, where it turned each corner about 4° too far.
 - **Changed: `control_period` 0.05 s**, not 0.2. Qualcomm's README gives this remedy "if the robot overshoots turns and hits walls"; at 0.74× real time, a 0.2 s wall-clock loop overshoots each turn by about 4°, and the route clears one wall with a 4.4° heading budget.
-- **The mapping route is timing-sensitive.** It depends on the Simulator's speed, so the route and saved map differ between runs in the full Runtime. In Gazebo at 1.0× real time, the same arithmetic gives about 3° of overshoot per turn.
-- **The Simulator runs below real time** in the office (0.74× with physics alone, 0.34× in the full Runtime with two cameras rendering) with Qualcomm's 1800-beam lidar, kept as is; Cartographer and Nav2 run on wall time.
+- **The mapping route is timing-sensitive.** It depends on the Simulator's speed, so the route and saved map differ between runs. The second leg clears a station wall with a heading budget of about 4°, and each turn overshoots by up to one control tick. In Gazebo at 1.0× real time, the same arithmetic gives about 3° of overshoot per turn.
+- **Simulation speed depends on the image.** With Qualcomm's 1800-beam lidar, kept as is, the office runs at 0.74× real time with physics alone, 0.34× in the full Runtime on the CPU image with two cameras rendering, and about 1.0× in the full Runtime on the CUDA image with an NVIDIA GPU. Cartographer and Nav2 run on wall time.
 - **Cameras render at 2 Hz** on the CPU image (`render_publish_rate`), enough for the person check.
-- **Validated setups:** `task_manager_node`'s end-to-end run ("Navigation target reached", then the detection) passed during the port in a run with only the Simulator, controllers, and pipeline (no other Runtime nodes); SAM3 detection passes on saved frames (one person at the office goal, none at an empty wall) and runs live in the Runtime.
+- **Validated setups:** the full run (scripted mapping, map save, relocalization, Nav2 to the office, and `task_manager_node`'s "Found person at office") passes in the full Runtime on the CUDA image; SAM3 detection also passes on saved frames (one person at the office goal, none at an empty wall).
 
 ---
 
