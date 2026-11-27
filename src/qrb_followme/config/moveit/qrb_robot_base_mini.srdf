@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot name="qrb_robot_base_mini">
+    <!-- The state monitor tracks the base through Cartographer's map -> odom -> base_footprint TF, so the robot sits
+         where SLAM places it in the map Nav2 plans on. -->
+    <virtual_joint name="base_planar_joint" type="planar" parent_frame="map" child_link="base_footprint"/>
+    <group name="base">
+        <joint name="wheel_left_joint"/>
+        <joint name="wheel_right_joint"/>
+    </group>
+    <disable_collisions link1="base_link" link2="wheel_left" reason="Adjacent"/>
+    <disable_collisions link1="base_link" link2="wheel_right" reason="Adjacent"/>
+    <disable_collisions link1="base_link" link2="caster_wheel_link1" reason="Adjacent"/>
+    <disable_collisions link1="base_link" link2="caster_wheel_link2" reason="Adjacent"/>
+    <disable_collisions link1="base_link" link2="caster_wheel_link3" reason="Adjacent"/>
+    <disable_collisions link1="base_link" link2="caster_wheel_link4" reason="Adjacent"/>
+    <disable_collisions link1="base_link" link2="laser" reason="Adjacent"/>
+    <disable_collisions link1="base_link" link2="base_camera_link" reason="Adjacent"/>
+</robot>

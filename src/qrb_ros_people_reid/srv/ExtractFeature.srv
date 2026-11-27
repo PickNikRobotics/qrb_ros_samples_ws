@@ -1,0 +1,9 @@
+# Request: Input image for feature extraction
+sensor_msgs/Image image
+
+---
+
+# Response: Extracted feature vector
+float32[] feature
+bool success
+string message

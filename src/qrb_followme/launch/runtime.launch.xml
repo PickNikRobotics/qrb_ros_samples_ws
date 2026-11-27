@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<launch>
+
+  <!-- MoveIt Pro runtime services -->
+  <include
+    file="$(find-pkg-share moveit_studio_agent)/launch/runtime_services.launch.xml"
+  />
+
+  <!-- Follow-Me simulated person controller -->
+  <node
+    pkg="qrb_followme"
+    exec="followme_people_controller"
+    name="followme_people_controller"
+    output="screen">
+    <param
+      name="movement_speed"
+      value="0.3"
+    />
+  </node> 
+
+</launch>

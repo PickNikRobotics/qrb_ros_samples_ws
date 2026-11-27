@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<library path="qrb_target_tracking">
+  <class name="qrb_target_tracking::QrbTargetTrackingBehaviorsLoader"
+         type="qrb_target_tracking::QrbTargetTrackingBehaviorsLoader"
+         base_class_type="moveit_pro::behaviors::SharedResourcesNodeLoaderBase">
+    <description>Registers the QrbTargetTracking Behavior.</description>
+  </class>
+</library>

@@ -1,0 +1,10 @@
+# Request: Two feature vectors to compare
+float32[] feature1
+float32[] feature2
+
+---
+
+# Response: Similarity score (cosine distance)
+float32 similarity
+bool success
+string message

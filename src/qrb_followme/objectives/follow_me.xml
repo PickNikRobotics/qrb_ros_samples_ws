@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<root BTCPP_format="4" main_tree_to_execute="FollowMe">
+
+  <BehaviorTree ID="FollowMe" _description="" _favorite="false">
+
+    <!-- Keep the whole Follow-Me pipeline running continuously -->
+    <Decorator ID="KeepRunningUntilFailure">
+
+      <!-- Retry indefinitely if any step in the pipeline fails -->
+      <Decorator ID="RetryUntilSuccessful" num_attempts="-1">
+
+        <Control ID="Sequence" name="qrb_follow_me_pipeline">
+
+          <!-- ====================================================== -->
+          <!-- Camera inputs                                          -->
+          <!--                                                        -->
+          <!-- RGB, Depth and CameraInfo are collected in parallel.   -->
+          <!-- Continue only after all three inputs succeed.           -->
+          <!-- ====================================================== -->
+
+          <Control
+            ID="Parallel"
+            name="get_camera_inputs"
+            success_count="3"
+            failure_count="1">
+
+            <!-- RGB image -->
+            <Action
+              ID="GetImage"
+              topic_name="/followme_camera/color"
+              message_out="{image}"
+              message_timeout_sec="5.0"
+              publisher_timeout_sec="5.0"
+            />
+
+            <!-- Depth image -->
+            <Action
+              ID="GetImage"
+              topic_name="/followme_camera/depth"
+              message_out="{depth_image}"
+              message_timeout_sec="5.0"
+              publisher_timeout_sec="5.0"
+            />
+
+            <!-- Camera intrinsics -->
+            <Action
+              ID="GetCameraInfo"
+              topic_name="/followme_camera/camera_info"
+              message_out="{camera_info}"
+              message_timeout_sec="5.0"
+              publisher_timeout_sec="5.0"
+            />
+
+          </Control>
+
+          <!-- ====================================================== -->
+          <!-- YOLO detection                                         -->
+          <!-- ====================================================== -->
+
+          <Action
+            ID="QrbYoloBehavior"
+            image="{image}"
+            image_topic="/cam0_stream1"
+            result_topic="/yolo_detect_result"
+            timeout_sec="5.0"
+            yolo_detect_result="{yolo_detect_result}"
+          />
+
+          <!-- ====================================================== -->
+          <!-- People Re-ID                                           -->
+          <!-- ====================================================== -->
+
+          <Action
+            ID="QrbPeopleReid"
+            image="{image}"
+            detections="{yolo_detect_result}"
+            reference_feature="{target_feature}"
+            match_threshold="1"
+            template_update_threshold="0.20"
+            timeout_sec="5.0"
+            similarity_score="{similarity_score}"
+            matched="{matched}"
+            target_detection="{target_detection}"
+            current_feature="{current_feature}"
+            message="{reid_message}"
+          />
+
+          <!-- ====================================================== -->
+          <!-- RGB-D target tracking and AMR control                   -->
+          <!-- ====================================================== -->
+
+          <Action
+            ID="QrbTargetTracking"
+            depth_image="{depth_image}"
+            camera_info="{camera_info}"
+            target_detection="{target_detection}"
+            detection_image_width="640"
+            detection_image_height="640"
+            detection_letterboxed="true"
+            cmd_vel_topic="/cmd_vel"
+            target_distance="2.0"
+            min_valid_depth="0.3"
+            max_valid_depth="10.0"
+            depth_roi_radius="5"
+            linear_kp="0.45"
+            linear_ki="0.0"
+            linear_kd="0.05"
+            angular_kp="1.2"
+            angular_ki="0.0"
+            angular_kd="0.08"
+            max_linear_speed="3"
+            max_angular_speed="0.8"
+            target_depth="{target_depth}"
+            target_angle="{target_angle}"
+            message="{tracking_message}"
+          />
+
+        </Control>
+
+      </Decorator>
+
+    </Decorator>
+
+  </BehaviorTree>
+
+  <TreeNodesModel>
+    <SubTree ID="FollowMe">
+      <MetadataFields>
+        <Metadata runnable="true" />
+        <Metadata subcategory="" />
+      </MetadataFields>
+    </SubTree>
+  </TreeNodesModel>
+
+</root>
