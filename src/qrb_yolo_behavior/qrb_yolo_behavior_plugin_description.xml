@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<library path="qrb_yolo_behavior">
+  <class
+    name="qrb_yolo_behavior::QrbYoloBehaviorBehaviorsLoader"
+    type="qrb_yolo_behavior::QrbYoloBehaviorBehaviorsLoader"
+    base_class_type="moveit_pro::behaviors::SharedResourcesNodeLoaderBase">
+    <description>QRB YOLO Behavior Loader</description>
+  </class>
+</library>

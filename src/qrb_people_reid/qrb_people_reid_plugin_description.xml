@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<library path="qrb_people_reid">
+  <class
+    name="qrb_people_reid::QrbPeopleReidBehaviorsLoader"
+    type="qrb_people_reid::QrbPeopleReidBehaviorsLoader"
+    base_class_type="moveit_pro::behaviors::SharedResourcesNodeLoaderBase">
+    <description>Registers the QrbPeopleReid Behavior.</description>
+  </class>
+</library>

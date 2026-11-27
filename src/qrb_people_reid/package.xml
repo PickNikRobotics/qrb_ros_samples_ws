@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>qrb_people_reid</name>
+  <version>0.1.0</version>
+  <description>MoveIt Pro Behavior plugin for QRB people Re-ID services.</description>
+  <maintainer email="fulan.liu@example.com">Fulan Liu</maintainer>
+  <license>BSD-3-Clause</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>cv_bridge</depend>
+  <depend>moveit_pro_behavior_interface</depend>
+  <depend>pluginlib</depend>
+  <depend>qrb_ros_people_reid</depend>
+  <depend>rclcpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>vision_msgs</depend>
+
+  <test_depend>ament_cmake_gtest</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
